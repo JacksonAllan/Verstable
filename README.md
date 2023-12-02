@@ -89,7 +89,6 @@ int main( void )
   {
     int_int_map_itr itr =
       fm_insert( &our_map, i, i + 1 );
-
     if( fm_is_end( itr ) )
       exit( 1 ); // Out of memory.
   }
@@ -103,7 +102,11 @@ int main( void )
   {
     int_int_map_itr itr = fm_get( &our_map, i );
     if( !fm_is_end( itr ) )
-      printf( "%d:%d ", itr.data->key, itr.data->val );
+      printf(
+        "%d:%d ",
+        itr.data->key,
+        itr.data->val
+      );
   }
   // Printed: 1:2 2:3 4:5 5:6 7:8 8:9
 
@@ -113,7 +116,11 @@ int main( void )
   	!fm_is_end( itr );
   	itr = fm_next( itr )
   )
-    printf( "%d:%d ", itr.data->key, itr.data->val );
+    printf(
+      "%d:%d ",
+      itr.data->key,
+      itr.data->val
+    );
   // Printed: 4:5 5:6 2:3 8:9 1:2 7:8
 
   fm_cleanup( &our_map );
