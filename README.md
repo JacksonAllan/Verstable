@@ -208,7 +208,7 @@ int main( void )
   // Inserting elements.
   for( int i = 0; i < 10; ++i )
   {
-    int_int_map_itr =
+    int_int_map_itr itr =
       int_int_map_insert( &our_map, i, i + 1 );
     if( int_int_map_is_end( itr ) )
       exit( 1 ); // Out of memory.
