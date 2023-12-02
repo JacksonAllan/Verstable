@@ -49,8 +49,11 @@ int main( void )
 
   // Inserting elements.
   for( int i = 0; i < 10; ++i )
-    if( fm_is_end( fm_insert( &our_set, i ) ) )
+  {
+    int_set_itr = fm_insert( &our_set, i );
+    if( fm_is_end( itr ) )
       exit( 1 ); // Out of memory.
+  }
 
   // Erasing elements.
   for( int i = 0; i < 10; i += 3 )
@@ -83,8 +86,11 @@ int main( void )
 
   // Inserting elements.
   for( int i = 0; i < 10; ++i )
-    if( fm_is_end( fm_insert( &our_map, i, i + 1 ) ) )
+  {
+    int_int_map_itr itr = fm_insert( &our_map, i, i + 1 );
+    if( fm_is_end( itr ) )
       exit( 1 ); // Out of memory.
+  }
 
   // Erasing elements.
   for( int i = 0; i < 10; i += 3 )
