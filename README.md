@@ -24,7 +24,7 @@ Benchmarks comparing **Fastmap** to the aforementioned hash tables and several R
 <tr></tr>
 <tr>
 <td>
-Using the C11 generic API:
+Using the generic API (C11 and later):
 
 ```c
 #include <stdio.h>
@@ -125,17 +125,11 @@ int main( void )
 
   fm_cleanup( &our_map );
 }
-
-
-
-
-
-
 ```
 
 </td>
 <td>
-Using the prefixed functions available in C99 and later:
+Using the prefixed functions API (C99 and later):
 
 ```c
 #include <stdio.h>
@@ -143,12 +137,16 @@ Using the prefixed functions available in C99 and later:
 // Instantiating a set template.
 #define NAME int_set
 #define KEY_TY int
+#define HASH_FN fm_hash_integer
+#define CMPR_FN fm_cmpr_integer
 #include "../fastmap.h"
 
 // Instantiating a map template.
 #define NAME int_int_map
 #define KEY_TY int
 #define VAL_TY int
+#define HASH_FN fm_hash_integer
+#define CMPR_FN fm_cmpr_integer
 #include "../fastmap.h"
 
 int main( void )
@@ -160,8 +158,11 @@ int main( void )
 
   // Inserting elements.
   for( int i = 0; i < 10; ++i )
-    if( int_set_is_end( int_set_insert( &our_set, i ) ) )
+  {
+    int_set_itr itr = int_set_insert( &our_set, i );
+    if( int_set_is_end( itr ) )
       exit( 1 ); // Out of memory.
+  }
 
   // Erasing elements.
   for( int i = 0; i < 10; i += 3 )
@@ -194,8 +195,12 @@ int main( void )
 
   // Inserting elements.
   for( int i = 0; i < 10; ++i )
-    if( int_int_map_is_end( int_int_map_insert( &our_map, i, i + 1 ) ) )
+  {
+    int_int_map_itr =
+      int_int_map_insert( &our_map, i, i + 1 );
+    if( int_int_map_is_end( itr ) )
       exit( 1 ); // Out of memory.
+  }
 
   // Erasing elements.
   for( int i = 0; i < 10; i += 3 )
