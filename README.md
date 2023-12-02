@@ -159,7 +159,8 @@ int main( void )
   // Inserting elements.
   for( int i = 0; i < 10; ++i )
   {
-    int_set_itr itr = int_set_insert( &our_set, i );
+    int_set_itr itr =
+      int_set_insert( &our_set, i );
     if( int_set_is_end( itr ) )
       exit( 1 ); // Out of memory.
   }
@@ -179,7 +180,8 @@ int main( void )
 
   // Iteration.
   for(
-  	int_set_itr itr = int_set_first( &our_set );
+  	int_set_itr itr =
+      int_set_first( &our_set );
   	!int_set_is_end( itr );
   	itr = int_set_next( itr )
   )
@@ -209,7 +211,8 @@ int main( void )
   // Retrieving elements.
   for( int i = 0; i < 10; ++i )
   {
-    int_int_map_itr itr = int_int_map_get( &our_map, i );
+    int_int_map_itr itr =
+      int_int_map_get( &our_map, i );
     if( !int_int_map_is_end( itr ) )
       printf(
       	"%d:%d ",
@@ -221,11 +224,16 @@ int main( void )
 
   // Iteration.
   for(
-  	int_int_map_itr itr = int_int_map_first( &our_map );
+  	int_int_map_itr itr =
+      int_int_map_first( &our_map );
   	!int_int_map_is_end( itr );
   	itr = int_int_map_next( itr )
   )
-    printf( "%d:%d ", itr.data->key, itr.data->val );
+    printf(
+      "%d:%d ",
+      itr.data->key,
+      itr.data->val
+    );
   // Printed: 4:5 5:6 2:3 8:9 1:2 7:8
 
   int_int_map_cleanup( &our_map );
