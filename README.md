@@ -70,9 +70,9 @@ int main( void )
 
   // Iteration.
   for(
-  	int_set_itr itr = fm_first( &our_set );
-  	!fm_is_end( itr );
-  	itr = fm_next( itr )
+    int_set_itr itr = fm_first( &our_set );
+    !fm_is_end( itr );
+    itr = fm_next( itr )
   )
     printf( "%d ", itr.data->key );
   // Printed: 4 5 2 8 1 7
@@ -112,9 +112,9 @@ int main( void )
 
   // Iteration.
   for(
-  	int_int_map_itr itr = fm_first( &our_map );
-  	!fm_is_end( itr );
-  	itr = fm_next( itr )
+    int_int_map_itr itr = fm_first( &our_map );
+    !fm_is_end( itr );
+    itr = fm_next( itr )
   )
     printf(
       "%d:%d ",
