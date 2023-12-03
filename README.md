@@ -20,11 +20,11 @@ Benchmarks comparing **Fastmap** to the aforementioned hash tables and several R
 
 **Fastmap** is distributed under the MIT license.
 
-# Installation
+## Installation
 
 Just download fastmap.h and place it in your project's directory or your shared header directory.
 
-# Example
+## Example
 
 <table>
 <tr></tr>
@@ -260,8 +260,10 @@ int main( void )
 </tr>
 </table>
 
-# How does it work?
+## FAQ
 
-# How is it tested?
+### How does it work?
 
-# API
+### How is it tested?
+
+## API
