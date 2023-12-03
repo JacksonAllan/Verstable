@@ -8,7 +8,7 @@ Its API features include:
 * Customizable hash, comparison, and destructor functions.
 * Single header.
 * C99 compatibility.
-* Generic API for C11 and later.
+* Generic API in C11 and later.
 
 Its performance-related features include:
 
