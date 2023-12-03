@@ -123,6 +123,104 @@ Including the library automatically undefines all the aforementioned macros afte
 
 ## Functions
 
+The functions associated with a hash table type are all prefixed with the name the user supplied via the NAME macro.  
+In C11 and later, the generic `fm_`-prefixed macros may be used to automatically select the correct version of the specified function based on the arguments.
+
+```c
+void NAME_init( NAME *table ) // C11 generic macro: fm_init.
+```
+
+Initializes the table for use.
+
+```c
+bool NAME_init_clone( NAME *table, NAME *source ) // C11 generic macro: fm_init_clone.
+```
+
+Initializes the table as a shallow copy of the specified source table.  
+Returns `false` in the case of memory allocation failure.
+
+```c
+size_t NAME_size( NAME *table ) // C11 generic macro: fm_size.
+```
+
+Returns the number of keys currently in the table.
+
+```c
+size_t NAME_bucket_count( NAME *table ) // C11 generic macro: fm_bucket_count.
+```
+
+Returns the table's current bucket count.
+
+```c
+NAME_itr NAME_insert( NAME *table, KEY_TY key )
+NAME_itr NAME_insert( NAME *table, KEY_TY key, VAL_TY val )
+// C11 generic macro: fm_insert.
+```
+
+Inserts the specified key (and value, if `VAL_TY` was defined) into the hash table.  
+If the same key already exists, then the new key (and value) replaces the existing key (and value).  
+Returns an iterator to the new key, or an end iterator in the case of memory allocation failure.
+
+```c
+NAME_itr NAME_get_or_insert( NAME *table, KEY_TY key )
+NAME_itr NAME_get_or_insert( NAME *table, KEY_TY key, VAL_TY val )
+// C11 generic macro: fm_get_or_insert.
+```
+
+Inserts the specified key (and value, if `VAL_TY` was defined) if it does not already exist in the table.  
+Returns an iterator to new key if it was inserted, or an iterator to the existing key, or an end iterator if the key did not exist but the new key could not be inserted because of memory allocation failure.  
+Determine whether the key was inserted by comparing the table's size before and after the call.
+
+```c
+NAME_itr NAME_get( NAME *table, KEY_TY key ) // C11 generic macro: fm_get.
+```
+
+Returns a iterator to the specified key, or an end iterator if no such key exists.
+
+```c
+bool NAME_erase( NAME *table, KEY_TY key ) // C11 generic macro: fm_erase.
+```
+
+Erases the specified key (and associated value, if `VAL_TY` was defined), if it exists.  
+Returns `true` if a key was erased.
+
+NAME_itr NAME_erase_itr( NAME *table, NAME_itr itr ) // C11 generic macro: fm_erase_itr.
+
+Erases the key (and associated value, if VAL_TY was defined) pointed to by the specified iterator.
+Returns an iterator to the next key in the table, or an end iterator if the erased key was the last one.
+
+bool NAME_reserve( NAME *table, size_t size ) // C11 generic macro: fm_reserve.
+
+Ensures that the bucket count is large enough to support the specified key count (i.e. size) without rehashing.
+Returns false if unsuccessful due to memory allocation failure.
+
+bool NAME_shrink( NAME *table ) // C11 generic macro: fm_shrink.
+
+Shrinks the bucket count to best accommodate the current size.
+Returns false if unsuccessful due to memory allocation failure.
+
+NAME_itr NAME_first( NAME *table ) // C11 generic macro: fm_first.
+
+Returns an iterator to the first key in the table, or an end iterator if the table is empty.
+
+bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: fm_is_end.
+
+Returns true if the iterator is an end iterator.
+
+NAME_itr NAME_next( NAME_itr itr ) // C11 generic macro: fm_next.
+
+Returns an iterator to the key after the one pointed to by the specified iterator, or an end iterator if the
+specified iterator points to the last key in the table.
+
+void NAME_clear( NAME *table ) // C11 generic macro: fm_clear.
+
+Erases all keys (and values, if VAL_TY was defined) in the table.
+
+void NAME_cleanup( NAME *table ) // C11 generic macro: fm_cleanup.
+
+Erases all keys (and values, if VAL_TY was defined) in the table, frees all memory associated with it, and
+initializes it for reuse.
+
 ## Iterators
 
 ```c
