@@ -33,7 +33,7 @@ HASH_FN [...]
 ```
 
 The name of the existing function used to hash each key.  
-The function should have the signature <code>uint64_t ( KEY_TY )</code> and return a 64-bit hash code.  
+The function should have the signature `uint64_t ( KEY_TY )` and return a 64-bit hash code.  
 For best performance, the hash function should provide a high level of entropy across all bits.  
 There are two default hash functions: `fm_hash_integer` for all integer types up to 64 bits in size, and `fm_hash_string` for `NULL`-terminated strings (i.e. `char *`).  
 When `KEY_TY` is one of such types and the compiler is in C11 mode or later, `HASH_FN` may be left undefined, in which case the appropriate default function is inferred from `KEY_TY`.  
@@ -60,8 +60,8 @@ The default is `0.9`, i.e. 90%.
 KEY_DTOR_FN [...]
 ```
 
-The name of the existing destructor function, with the signature void ( KEY_TY ), called on a key when it is erased from the table or replaced by a newly inserted key.  
-The API functions that may call the key destructor are NAME_insert, NAME_erase, NAME_erase_itr, NAME_clear, and NAME_cleanup.
+The name of the existing destructor function, with the signature `void ( KEY_TY )`, called on a key when it is erased from the table or replaced by a newly inserted key.  
+The API functions that may call the key destructor are `NAME_insert`, `NAME_erase`, `NAME_erase_itr`, `NAME_clear`, and `NAME_cleanup`.
 
 ```c
 VAL_DTOR_FN [...]
