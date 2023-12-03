@@ -24,7 +24,7 @@ Try it online here.--------
 
 ## Installation
 
-Just download fastmap.h and place it in your project's directory or your shared header directory.
+Just download `fastmap.h` and place it in your project's directory or your shared header directory.
 
 ## Example
 
@@ -265,6 +265,28 @@ int main( void )
 ## FAQ
 
 ### How does it work?
+
+Fastmap is a C99-compatible, open-addressing hash table using quadratic probing and the following innovations:
+
+- All keys that hash (i.e. "belong") to the same bucket (their "home bucket") are linked together by an 11-bit integer specifying the quadratic displacement, relative to that bucket, of the next key in the chain.
+
+- If a chain of keys exists for a given bucket, then it always begins at that bucket. To maintain this policy, a 1-bit flag is used to mark whether the key occupying a bucket belongs there. When inserting a new key, if the bucket it belongs to is occupied by a key that does not belong there, then the occupying key is evicted and the new key takes the bucket.
+
+- A 4-bit fragment of each key's hash code is also stored.
+
+- The aforementioned metadata associated with each bucket (the 4-bit hash fragment, the 1-bit flag, and the 11-bit link to the next key in the chain) are stored together in a uint16_t array rather than in the bucket alongside the key and (optionally) the value.
+
+One way to conceptualize this design is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the design discussed by Malte Skarupke's [Bytell hash table](https://www.youtube.com/watch?v=M2fKMP47slQ).
+
+Advantages of this design include:
+
+- Fast lookups impervious to load factor: If the table contains any key belonging to the lookup key's home bucket, then that bucket contains the first in a traversable chain of all keys belonging to it. Hence, only the home bucket and other buckets containing keys belonging to it are ever probed. Moreover, the stored hash fragments allow skipping most non-matching keys in the chain without accessing the actual buckets array or calling the (potentially expensive) key comparison function.
+
+- Fast insertions: Insertions are faster than they are in other designs that move keys around (e.g., Robin Hood) because they only move, at most, one existing key.
+
+- Fast, tombstone-free deletions: Deletions, which usually require tombstones in quadratic-probing hash tables, are tombstone-free and only move, at most, one existing key.
+
+- Consistently fast iteration: The separate metadata array allows keys in sparsely populated tables to be found without incurring the frequent cache misses that would result from traversing the buckets array.
 
 ### How is it tested?
 
