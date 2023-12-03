@@ -1,4 +1,4 @@
-# CC API Reference
+# Fastmap API Reference
 
 ## Instantiating a hash table template
 
