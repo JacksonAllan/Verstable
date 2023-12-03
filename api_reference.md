@@ -18,64 +18,73 @@ In C99, it is also always necessary to define `HASH_FN` and `CMPR_FN` (see below
 
 The following macros may also be defined before including the header:
 
+<dl><dd>
+
 ```c
 VAL_TY [...]
 ```
 
-The type of the value associated with each key.
-If this macro is defined, the hash table acts as a map associating keys with values.
+The type of the value associated with each key.  
+If this macro is defined, the hash table acts as a map associating keys with values.  
 Otherwise, it acts as a set containing only keys.
 
 ```c
 HASH_FN [...]
 ```
 
-The name of the existing function used to hash each key.
-The function should have the signature `uint64_t ( KEY_TY )` and return a 64-bit hash code.
-For best performance, the hash function should provide a high level of entropy across all bits.
-There are two default hash functions: `fm_hash_integer` for all integer types up to 64 bits in size, and `fm_hash_string` for `NULL`-terminated strings (i.e. `char *`).
-When `KEY_TY` is one of such types and the compiler is in C11 mode or later, `HASH_FN` may be left undefined, in which case the appropriate default function is inferred from `KEY_TY`.
+The name of the existing function used to hash each key.  
+The function should have the signature <code>uint64_t ( KEY_TY )</code> and return a 64-bit hash code.  
+For best performance, the hash function should provide a high level of entropy across all bits.  
+There are two default hash functions: `fm_hash_integer` for all integer types up to 64 bits in size, and `fm_hash_string` for `NULL`-terminated strings (i.e. `char *`).  
+When `KEY_TY` is one of such types and the compiler is in C11 mode or later, `HASH_FN` may be left undefined, in which case the appropriate default function is inferred from `KEY_TY`.  
 Otherwise, `HASH_FN` must be defined.
 
-    CMPR_FN [...]
+```c
+CMPR_FN [...]
+```
 
-      The name of the existing function used to compare two keys.
-      The function should have the signature bool ( KEY_TY, KEY_TY ) and return true if the two keys are equal.
-      There are two default comparison functions: fm_cmpr_integer for all integer types up to 64 bits in size, and
-      fm_cmpr_string for NULL-terminated strings (i.e. char *).
-      As with the default hash functions, in C11 or later the appropriate default comparison function is inferred if
-      KEY_TY is one of such types and CMPR_FN is left undefined.
-      Otherwise, CMPR_FN must be defined.
+The name of the existing function used to compare two keys.  
+The function should have the signature `bool ( KEY_TY, KEY_TY )` and return `true` if the two keys are equal.
+There are two default comparison functions: `fm_cmpr_integer` for all integer types up to 64 bits in size, and `fm_cmpr_string` for `NULL`-terminated strings (`i.e. char *`).  
+As with the default hash functions, in C11 or later the appropriate default comparison function is inferred if `KEY_TY` is one of such types and `CMPR_FN` is left undefined.  
+Otherwise, `CMPR_FN` must be defined.
 
-    MAX_LOAD [...]
+```c
+MAX_LOAD [...]
+```
 
-      The floating-point load factor at which the hash table automatically doubles the size of its internal buckets
-      array.
-      The default is 0.9, i.e. 90%.
+The floating-point load factor at which the hash table automatically doubles the size of its internal buckets array.  
+The default is `0.9`, i.e. 90%.
 
-    KEY_DTOR_FN [...]
+```c
+KEY_DTOR_FN [...]
+```
 
-      The name of the existing destructor function, with the signature void ( KEY_TY ), called on a key when it is
-      erased from the table or replaced by a newly inserted key.
-      The API functions that may call the key destructor are NAME_insert, NAME_erase, NAME_erase_itr, NAME_clear,
-      and NAME_cleanup.
+The name of the existing destructor function, with the signature void ( KEY_TY ), called on a key when it is erased from the table or replaced by a newly inserted key.  
+The API functions that may call the key destructor are NAME_insert, NAME_erase, NAME_erase_itr, NAME_clear, and NAME_cleanup.
 
-    VAL_DTOR_FN [...]
+```c
+VAL_DTOR_FN [...]
+```
 
-      The name of the existing destructor function, with the signature void ( VAL_TY ), called on a value when it is
-      erased from the table or replaced by a newly inserted value.
-      The API functions that may call the value destructor are NAME_insert, NAME_erase, NAME_erase_itr, NAME_clear,
-      and NAME_cleanup.
+The name of the existing destructor function, with the signature `void ( VAL_TY )`, called on a value when it is erased from the table or replaced by a newly inserted value.  
+The API functions that may call the value destructor are `NAME_insert`, `NAME_erase`, `NAME_erase_itr`, `NAME_clear`, and `NAME_cleanup`.
 
-    MALLOC_FN [...]
+```c
+MALLOC_FN [...]
+```
 
-      The name of the existing function, with the signature void *( size_t ), used to allocate memory.
-      The default is stdlib.h's malloc.
+The name of the existing function, with the signature `void *( size_t )`, used to allocate memory.  
+The default is stdlib.h's malloc.
 
-    FREE_FN [...]
+```c
+FREE_FN [...]
+```
 
-      The name of the existing function, with the signature void ( void * ), used to free memory.
-      The default is stdlib.h's free.
+The name of the existing function, with the signature `void ( void * )`, used to free memory.  
+The default is stdlib.h's free.
+
+</dd></dl>
 
     HEADER_MODE
     IMPLEMENTATION_MODE
