@@ -84,43 +84,42 @@ FREE_FN [...]
 The name of the existing function, with the signature `void ( void * )`, used to free memory.  
 The default is stdlib.h's free.
 
+```c
+HEADER_MODE
+IMPLEMENTATION_MODE
+```
+
+By default, all hash table functions are defined as static inline functions, the intent being that a given hash table template should be instantiated once per translation unit; For best performance, this is the recommended way to use the library.  
+However, it is also possible separate the struct definitions and function declarations from the function definitions such that one implementation can be shared across all translation units (as in a traditional header and source file pair).  
+In that case, instantiate a template wherever it is needed by defining `HEADER_MODE`, along with only `NAME`, `KEY_TY`, and (optionally) `VAL_TY` and header guards, and including the library, e.g.:
+
+```c
+#ifndef INT_INT_MAP_H
+#define INT_INT_MAP_H
+#define NAME   int_int_map
+#define KEY_TY int
+#define VAL_TY int
+#define HEADER_MODE
+#include "fastmap.h"
+#endif
+```
+
+In one source file, define `IMPLEMENTATION_MODE`, along with `NAME`, `KEY_TY`, and any of the aforementioned optional macros, and include the library, e.g.:
+
+```c
+#define NAME     int_int_map
+#define KEY_TY   int
+#define VAL_TY   int
+#define HASH_FN  fm_hash_integer // C99.
+#define CMPR_FN  fm_cmpr_integer // C99.
+#define MAX_LOAD 0.8
+#define IMPLEMENTATION_MODE
+#include "fastmap.h"
+```
+
 </dd></dl>
 
-    HEADER_MODE
-    IMPLEMENTATION_MODE
-
-      By default, all hash table functions are defined as static inline functions, the intent being that a given hash
-      table template should be instantiated once per translation unit; For best performance, this is the recommended
-      way to use the library.
-      However, it is also possible separate the struct definitions and function declarations from the function
-      definitions such that one implementation can be shared across all translation units (as in a traditional header
-      and source file pair).
-      In that case, instantiate a template wherever it is needed by defining HEADER_MODE, along with only NAME,
-      KEY_TY, and (optionally) VAL_TY and header guards, and including the library, e.g.:
-
-        #ifndef INT_INT_MAP_H
-        #define INT_INT_MAP_H
-        #define NAME   int_int_map
-        #define KEY_TY int
-        #define VAL_TY int
-        #define HEADER_MODE
-        #include "fastmap.h"
-        #endif
-
-      In one source file, define IMPLEMENTATION_MODE, along with NAME, KEY_TY, and any of the aforementioned optional
-      macros, and include the library, e.g.:
-
-        #define NAME     int_int_map
-        #define KEY_TY   int
-        #define VAL_TY   int
-        #define HASH_FN  fm_hash_integer // C99.
-        #define CMPR_FN  fm_cmpr_integer // C99.
-        #define MAX_LOAD 0.8
-        #define IMPLEMENTATION_MODE
-        #include "fastmap.h"          
-
-  Including the library automatically undefines all the aforementioned macros after they have been used to instantiate
-  the template.
+Including the library automatically undefines all the aforementioned macros after they have been used to instantiate the template.
 
 ## Functions
 
