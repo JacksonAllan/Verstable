@@ -237,6 +237,17 @@ Erases all keys (and values, if `VAL_TY` was defined) in the table, frees all me
 
 ## Iterators
 
+Access the key (and value, if VAL_TY was defined) that an iterator points to using the iterator struct's data field:
+
+```c
+itr.data->key
+itr.data->val
+```
+
+Functions that may insert new keys (NAME_insert and NAME_get_or_insert), erase keys (NAME_erase and NAME_erase_itr),
+or reallocate the internal bucket array (NAME_reserve and NAME_shrink) invalidate all exiting iterators.
+To delete keys during iteration and resume iterating, use the return value of NAME_erase_itr.
+
 ```c
 #define CC_NO_SHORT_NAMES
 ```
