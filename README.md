@@ -266,7 +266,7 @@ int main( void )
 
 ### How does it work?
 
-Fastmap is a C99-compatible, open-addressing hash table using quadratic probing and the following innovations:
+Fastmap is an open-addressing hash table using quadratic probing and the following innovations:
 
 - All keys that hash (i.e. "belong") to the same bucket (their "home bucket") are linked together by an 11-bit integer specifying the quadratic displacement, relative to that bucket, of the next key in the chain.
 
