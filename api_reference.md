@@ -21,7 +21,7 @@ The following macros may also be defined before including the header:
 <dl><dd>
 
 ```c
-VAL_TY [...]
+#define VAL_TY <type>
 ```
 
 The type of the value associated with each key.  
@@ -29,7 +29,7 @@ If this macro is defined, the hash table acts as a map associating keys with val
 Otherwise, it acts as a set containing only keys.
 
 ```c
-HASH_FN [...]
+#define HASH_FN <function name>
 ```
 
 The name of the existing function used to hash each key.  
@@ -40,7 +40,7 @@ When `KEY_TY` is one of such types and the compiler is in C11 mode or later, `HA
 Otherwise, `HASH_FN` must be defined.
 
 ```c
-CMPR_FN [...]
+#define CMPR_FN <function name>
 ```
 
 The name of the existing function used to compare two keys.  
@@ -50,43 +50,43 @@ As with the default hash functions, in C11 or later the appropriate default comp
 Otherwise, `CMPR_FN` must be defined.
 
 ```c
-MAX_LOAD [...]
+#define MAX_LOAD <floating point value>
 ```
 
 The floating-point load factor at which the hash table automatically doubles the size of its internal buckets array.  
 The default is `0.9`, i.e. 90%.
 
 ```c
-KEY_DTOR_FN [...]
+#define KEY_DTOR_FN <function name>
 ```
 
 The name of the existing destructor function, with the signature `void ( KEY_TY )`, called on a key when it is erased from the table or replaced by a newly inserted key.  
 The API functions that may call the key destructor are `NAME_insert`, `NAME_erase`, `NAME_erase_itr`, `NAME_clear`, and `NAME_cleanup`.
 
 ```c
-VAL_DTOR_FN [...]
+#define VAL_DTOR_FN <function name>
 ```
 
 The name of the existing destructor function, with the signature `void ( VAL_TY )`, called on a value when it is erased from the table or replaced by a newly inserted value.  
 The API functions that may call the value destructor are `NAME_insert`, `NAME_erase`, `NAME_erase_itr`, `NAME_clear`, and `NAME_cleanup`.
 
 ```c
-MALLOC_FN [...]
+#define MALLOC_FN <function name>
 ```
 
 The name of the existing function, with the signature `void *( size_t )`, used to allocate memory.  
 The default is stdlib.h's malloc.
 
 ```c
-FREE_FN [...]
+#define FREE_FN <function name>
 ```
 
 The name of the existing function, with the signature `void ( void * )`, used to free memory.  
 The default is stdlib.h's free.
 
 ```c
-HEADER_MODE
-IMPLEMENTATION_MODE
+#define HEADER_MODE
+#define IMPLEMENTATION_MODE
 ```
 
 By default, all hash table functions are defined as static inline functions, the intent being that a given hash table template should be instantiated once per translation unit; For best performance, this is the recommended way to use the library.  
