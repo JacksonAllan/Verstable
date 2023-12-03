@@ -2,6 +2,22 @@
 
 ## Instantiating a hash table template
 
+Create a new hash table type in the following manner:
+
+```c
+  #define NAME   [...]
+  #define KEY_TY [...]
+  #include "fastmap.h"
+```
+
+The `NAME` macro specifies the name of hash table type that the library will declare, the prefix for the functions associated with it, and the prefix for the associated iterator type.
+
+The `KEY_TY` macro specifies the key type.
+
+In C99, it is also always necessary to define `HASH_FN` and `CMPR_FN` (see below) before including the header.
+
+The following macros may also be defined before including the header:
+
 ## Functions
 
 ## Iterators
