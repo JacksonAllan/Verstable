@@ -20,6 +20,8 @@ Benchmarks comparing **Fastmap** to the aforementioned hash tables and several R
 
 **Fastmap** is distributed under the MIT license.
 
+Try it online here.--------
+
 ## Installation
 
 Just download fastmap.h and place it in your project's directory or your shared header directory.
