@@ -184,42 +184,56 @@ bool NAME_erase( NAME *table, KEY_TY key ) // C11 generic macro: fm_erase.
 Erases the specified key (and associated value, if `VAL_TY` was defined), if it exists.  
 Returns `true` if a key was erased.
 
+```c
 NAME_itr NAME_erase_itr( NAME *table, NAME_itr itr ) // C11 generic macro: fm_erase_itr.
+```
 
-Erases the key (and associated value, if VAL_TY was defined) pointed to by the specified iterator.
+Erases the key (and associated value, if `VAL_TY` was defined) pointed to by the specified iterator.  
 Returns an iterator to the next key in the table, or an end iterator if the erased key was the last one.
 
+```c
 bool NAME_reserve( NAME *table, size_t size ) // C11 generic macro: fm_reserve.
+```
 
-Ensures that the bucket count is large enough to support the specified key count (i.e. size) without rehashing.
-Returns false if unsuccessful due to memory allocation failure.
+Ensures that the bucket count is large enough to support the specified key count (i.e. size) without rehashing.  
+Returns `false` if unsuccessful due to memory allocation failure.
 
+```c
 bool NAME_shrink( NAME *table ) // C11 generic macro: fm_shrink.
+```
 
-Shrinks the bucket count to best accommodate the current size.
-Returns false if unsuccessful due to memory allocation failure.
+Shrinks the bucket count to best accommodate the current size.  
+Returns `false` if unsuccessful due to memory allocation failure.
 
+```c
 NAME_itr NAME_first( NAME *table ) // C11 generic macro: fm_first.
+```
 
 Returns an iterator to the first key in the table, or an end iterator if the table is empty.
 
+```c
 bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: fm_is_end.
+```
 
 Returns true if the iterator is an end iterator.
 
+```c
 NAME_itr NAME_next( NAME_itr itr ) // C11 generic macro: fm_next.
+```
 
-Returns an iterator to the key after the one pointed to by the specified iterator, or an end iterator if the
-specified iterator points to the last key in the table.
+Returns an iterator to the key after the one pointed to by the specified iterator, or an end iterator if the specified iterator points to the last key in the table.
 
+```c
 void NAME_clear( NAME *table ) // C11 generic macro: fm_clear.
+```
 
-Erases all keys (and values, if VAL_TY was defined) in the table.
+Erases all keys (and values, if `VAL_TY` was defined) in the table.
 
+```c
 void NAME_cleanup( NAME *table ) // C11 generic macro: fm_cleanup.
+```
 
-Erases all keys (and values, if VAL_TY was defined) in the table, frees all memory associated with it, and
-initializes it for reuse.
+Erases all keys (and values, if `VAL_TY` was defined) in the table, frees all memory associated with it, and initializes it for reuse.
 
 ## Iterators
 
