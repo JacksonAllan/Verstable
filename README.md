@@ -12,8 +12,8 @@ Its API features include:
 
 Its performance-related features include:
 
-* High speed almost immune to high load factors.
-* Only two bytes of overhead per bucket.
+* High speed impervious to high load factors.
+* Two bytes of overhead per bucket.
 * No tombstones.
 
 Benchmarks comparing **Fastmap** to the aforementioned hash tables and several Robin Hood hash tables can be found here.
