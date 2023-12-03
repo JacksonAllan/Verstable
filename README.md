@@ -47,7 +47,7 @@ int main( void )
   int_set our_set;
   fm_init( &our_set );
 
-  // Inserting elements.
+  // Inserting keys.
   for( int i = 0; i < 10; ++i )
   {
     int_set_itr itr = fm_insert( &our_set, i );
@@ -55,11 +55,11 @@ int main( void )
       exit( 1 ); // Out of memory.
   }
 
-  // Erasing elements.
+  // Erasing keys.
   for( int i = 0; i < 10; i += 3 )
     fm_erase( &our_set, i );
 
-  // Retrieving elements.
+  // Retrieving keys.
   for( int i = 0; i < 10; ++i )
   {
     int_set_itr itr = fm_get( &our_set, i );
@@ -84,7 +84,7 @@ int main( void )
   int_int_map our_map;
   fm_init( &our_map );
 
-  // Inserting elements.
+  // Inserting keys and values.
   for( int i = 0; i < 10; ++i )
   {
     int_int_map_itr itr =
@@ -93,11 +93,11 @@ int main( void )
       exit( 1 ); // Out of memory.
   }
 
-  // Erasing elements.
+  // Erasing keys and values.
   for( int i = 0; i < 10; i += 3 )
     fm_erase( &our_map, i );
 
-  // Retrieving elements.
+  // Retrieving keys and values.
   for( int i = 0; i < 10; ++i )
   {
     int_int_map_itr itr = fm_get( &our_map, i );
@@ -166,7 +166,7 @@ int main( void )
   int_set our_set;
   int_set_init( &our_set );
 
-  // Inserting elements.
+  // Inserting keys.
   for( int i = 0; i < 10; ++i )
   {
     int_set_itr itr =
@@ -175,11 +175,11 @@ int main( void )
       exit( 1 ); // Out of memory.
   }
 
-  // Erasing elements.
+  // Erasing keys.
   for( int i = 0; i < 10; i += 3 )
     int_set_erase( &our_set, i );
 
-  // Retrieving elements.
+  // Retrieving keys.
   for( int i = 0; i < 10; ++i )
   {
     int_set_itr itr = int_set_get( &our_set, i );
@@ -205,7 +205,7 @@ int main( void )
   int_int_map our_map;
   int_int_map_init( &our_map );
 
-  // Inserting elements.
+  // Inserting keys and values.
   for( int i = 0; i < 10; ++i )
   {
     int_int_map_itr itr =
@@ -214,11 +214,11 @@ int main( void )
       exit( 1 ); // Out of memory.
   }
 
-  // Erasing elements.
+  // Erasing keys and values.
   for( int i = 0; i < 10; i += 3 )
     int_int_map_erase( &our_map, i );
 
-  // Retrieving elements.
+  // Retrieving keys and values.
   for( int i = 0; i < 10; ++i )
   {
     int_int_map_itr itr =
