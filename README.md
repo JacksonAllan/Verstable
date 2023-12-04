@@ -1,6 +1,6 @@
 <picture><img src="./header.svg" alt="Fastmap"></picture>
 
-**Fastmap** is a generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as Abseil, Boost, and Bytell to C.
+**Fastmap** is a generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as [Abseil/Swiss](https://abseil.io/about/design/swisstables), [Boost](https://bannalia.blogspot.com/2022/11/inside-boostunorderedflatmap.html), and [Bytell](https://probablydance.com/2018/05/28/a-new-fast-hash-table-in-response-to-googles-new-fast-hash-table/) to C.
 
 Its features include:
 
@@ -301,7 +301,7 @@ Fastmap is an open-addressing hash table using quadratic probing and the followi
 
 - The aforementioned metadata associated with each bucket (the 4-bit hash fragment, the 1-bit flag, and the 11-bit link to the next key in the chain) are stored together in a uint16_t array rather than in the bucket alongside the key and (optionally) the value.
 
-One way to conceptualize this design is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the design discussed by Malte Skarupke's [Bytell hash table](https://www.youtube.com/watch?v=M2fKMP47slQ).
+One way to conceptualize this design is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the design discussed by Malte Skarupke's Bytell hash table, which is detailed [here](https://www.youtube.com/watch?v=M2fKMP47slQ).
 
 Advantages of this design include:
 
