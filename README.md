@@ -6,7 +6,7 @@ Its features include:
 
 <table>
 <tr>
-<td valign="top">
+<td valign="top" width="50%">
 
 API:
 - Type safety.
@@ -16,12 +16,12 @@ API:
 - Generic API in C11 and later.
 
 </td>
-<td valign="top">
+<td valign="top" width="50%">
 
 Performance:
 - High speed impervious to load factor.
 - Two bytes of overhead per bucket.
-- No tombstones.
+- Tombstones-free deletion.
 
 </td>
 </tr>
@@ -45,12 +45,11 @@ Performance:
 <ul>
 <li>High speed impervious to load factor.</li>
 <li>Two bytes of overhead per bucket.</li>
-<li>No tombstones.</li>
+<li>Tombstones-free deletion.</li>
 </ul>
 </td>
 </tr>
 </table>
-
 
 Benchmarks comparing **Fastmap** to the aforementioned hash tables and several Robin Hood hash tables can be found here.
 
