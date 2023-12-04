@@ -307,7 +307,7 @@ Advantages of this design include:
 
 - Fast lookups impervious to load factor: If the table contains any key belonging to the lookup key's home bucket, then that bucket contains the first in a traversable chain of all keys belonging to it. Hence, only the home bucket and other buckets containing keys belonging to it are ever probed. Moreover, the stored hash fragments allow skipping most non-matching keys in the chain without accessing the actual buckets array or calling the (potentially expensive) key comparison function.
 
-- Fast insertions: Insertions are faster than they are in other designs that move keys around (e.g., Robin Hood) because they only move, at most, one existing key.
+- Fast insertions: Insertions are faster than they are in other designs that move keys around (e.g. Robin Hood) because they only move, at most, one existing key.
 
 - Fast, tombstone-free deletions: Deletions, which usually require tombstones in quadratic-probing hash tables, are tombstone-free and only move, at most, one existing key.
 
