@@ -7,6 +7,7 @@ Its features include:
 <table>
 <tr>
 <td valign="top">
+<img width="441" height="1">
 
 API:
 - Type safety.
@@ -17,6 +18,7 @@ API:
 
 </td>
 <td valign="top">
+<img width="441" height="1">
 
 Performance:
 - High speed impervious to load factor.
