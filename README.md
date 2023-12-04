@@ -1,6 +1,6 @@
 <picture><img src="./header.svg" alt="Fastmap"></picture>
 
-**Fastmap** is a generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as Abseil and Boost to C.
+**Fastmap** is a generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as Abseil, Boost, and Bytell to C.
 
 Its features include:
 
@@ -51,7 +51,7 @@ Performance:
 </tr>
 </table>
 
-Benchmarks comparing **Fastmap** to the aforementioned hash tables and several Robin Hood hash tables can be found here.
+Benchmarks comparing **Fastmap** to the aforementioned hash tables and several Robin Hood-based hash tables can be found here.
 
 **Fastmap** is distributed under the MIT license.
 
