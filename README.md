@@ -66,7 +66,7 @@ Just download `fastmap.h` and place it in your project's directory or your share
 <table>
 <tr></tr>
 <tr>
-<td>
+<td valign="top">
 Using the generic API (C11 and later):
 
 ```c
@@ -168,20 +168,10 @@ int main( void )
 
   fm_cleanup( &our_map );
 }
-
-
-
-
-
-
-
-
-
-
 ```
 
 </td>
-<td>
+<td valign="top">
 Using the prefixed functions API (C99 and later):
 
 ```c
