@@ -75,13 +75,13 @@ Using the generic API (C11 and later):
 // Instantiating a set template.
 #define NAME int_set
 #define KEY_TY int
-#include "../fastmap.h"
+#include "fastmap.h"
 
 // Instantiating a map template.
 #define NAME int_int_map
 #define KEY_TY int
 #define VAL_TY int
-#include "../fastmap.h"
+#include "fastmap.h"
 
 int main( void )
 {
@@ -182,7 +182,7 @@ Using the prefixed functions API (C99 and later):
 #define KEY_TY int
 #define HASH_FN fm_hash_integer
 #define CMPR_FN fm_cmpr_integer
-#include "../fastmap.h"
+#include "fastmap.h"
 
 // Instantiating a map template.
 #define NAME int_int_map
@@ -190,7 +190,7 @@ Using the prefixed functions API (C99 and later):
 #define VAL_TY int
 #define HASH_FN fm_hash_integer
 #define CMPR_FN fm_cmpr_integer
-#include "../fastmap.h"
+#include "fastmap.h"
 
 int main( void )
 {
