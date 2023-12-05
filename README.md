@@ -88,63 +88,63 @@ int main( void )
   // Set.
 
   int_set our_set;
-  fm_init( &our_set );
+  vt_init( &our_set );
 
   // Inserting keys.
   for( int i = 0; i < 10; ++i )
   {
-    int_set_itr itr = fm_insert( &our_set, i );
-    if( fm_is_end( itr ) )
+    int_set_itr itr = vt_insert( &our_set, i );
+    if( vt_is_end( itr ) )
       exit( 1 ); // Out of memory.
   }
 
   // Erasing keys.
   for( int i = 0; i < 10; i += 3 )
-    fm_erase( &our_set, i );
+    vt_erase( &our_set, i );
 
   // Retrieving keys.
   for( int i = 0; i < 10; ++i )
   {
-    int_set_itr itr = fm_get( &our_set, i );
-    if( !fm_is_end( itr ) )
+    int_set_itr itr = vt_get( &our_set, i );
+    if( !vt_is_end( itr ) )
       printf( "%d ", itr.data->key );
   }
   // Printed: 1 2 4 5 7 8
 
   // Iteration.
   for(
-    int_set_itr itr = fm_first( &our_set );
-    !fm_is_end( itr );
-    itr = fm_next( itr )
+    int_set_itr itr = vt_first( &our_set );
+    !vt_is_end( itr );
+    itr = vt_next( itr )
   )
     printf( "%d ", itr.data->key );
   // Printed: 4 5 2 8 1 7
 
-  fm_cleanup( &our_set );
+  vt_cleanup( &our_set );
 
   // Map.
 
   int_int_map our_map;
-  fm_init( &our_map );
+  vt_init( &our_map );
 
   // Inserting keys and values.
   for( int i = 0; i < 10; ++i )
   {
     int_int_map_itr itr =
-      fm_insert( &our_map, i, i + 1 );
-    if( fm_is_end( itr ) )
+      vt_insert( &our_map, i, i + 1 );
+    if( vt_is_end( itr ) )
       exit( 1 ); // Out of memory.
   }
 
   // Erasing keys and values.
   for( int i = 0; i < 10; i += 3 )
-    fm_erase( &our_map, i );
+    vt_erase( &our_map, i );
 
   // Retrieving keys and values.
   for( int i = 0; i < 10; ++i )
   {
-    int_int_map_itr itr = fm_get( &our_map, i );
-    if( !fm_is_end( itr ) )
+    int_int_map_itr itr = vt_get( &our_map, i );
+    if( !vt_is_end( itr ) )
       printf(
         "%d:%d ",
         itr.data->key,
@@ -155,9 +155,9 @@ int main( void )
 
   // Iteration.
   for(
-    int_int_map_itr itr = fm_first( &our_map );
-    !fm_is_end( itr );
-    itr = fm_next( itr )
+    int_int_map_itr itr = vt_first( &our_map );
+    !vt_is_end( itr );
+    itr = vt_next( itr )
   )
     printf(
       "%d:%d ",
@@ -166,7 +166,7 @@ int main( void )
     );
   // Printed: 4:5 5:6 2:3 8:9 1:2 7:8
 
-  fm_cleanup( &our_map );
+  vt_cleanup( &our_map );
 }
 ```
 
@@ -180,16 +180,16 @@ Using the prefixed functions API (C99 and later):
 // Instantiating a set template.
 #define NAME int_set
 #define KEY_TY int
-#define HASH_FN fm_hash_integer
-#define CMPR_FN fm_cmpr_integer
+#define HASH_FN vt_hash_integer
+#define CMPR_FN vt_cmpr_integer
 #include "verstable.h"
 
 // Instantiating a map template.
 #define NAME int_int_map
 #define KEY_TY int
 #define VAL_TY int
-#define HASH_FN fm_hash_integer
-#define CMPR_FN fm_cmpr_integer
+#define HASH_FN vt_hash_integer
+#define CMPR_FN vt_cmpr_integer
 #include "verstable.h"
 
 int main( void )
