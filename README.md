@@ -59,7 +59,7 @@ Try it online here.--------
 
 ## Installation
 
-Just download `Verstable.h` and place it in your project's directory or your shared header directory.
+Just download `verstable.h` and place it in your project's directory or your shared header directory.
 
 ## Example
 
