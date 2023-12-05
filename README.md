@@ -1,6 +1,6 @@
-<picture><img src="./header.svg" alt="Fastmap"></picture>
+<picture><img src="./header.svg" alt="Verstable"></picture>
 
-**Fastmap** is a generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as [Abseil/Swiss](https://abseil.io/about/design/swisstables), [Boost](https://bannalia.blogspot.com/2022/11/inside-boostunorderedflatmap.html), and [Bytell](https://probablydance.com/2018/05/28/a-new-fast-hash-table-in-response-to-googles-new-fast-hash-table/) to C.
+**Verstable** is a generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as [Abseil/Swiss](https://abseil.io/about/design/swisstables), [Boost](https://bannalia.blogspot.com/2022/11/inside-boostunorderedflatmap.html), and [Bytell](https://probablydance.com/2018/05/28/a-new-fast-hash-table-in-response-to-googles-new-fast-hash-table/) to C.
 
 Its features include:
 
@@ -51,15 +51,15 @@ Performance:
 </tr>
 </table>
 
-Benchmarks comparing **Fastmap** to the aforementioned hash tables and several Robin Hood-based hash tables are available here.----
+Benchmarks comparing **Verstable** to the aforementioned hash tables and several Robin Hood-based hash tables are available here.----
 
-**Fastmap** is distributed under the MIT license.
+**Verstable** is distributed under the MIT license.
 
 Try it online here.--------
 
 ## Installation
 
-Just download `fastmap.h` and place it in your project's directory or your shared header directory.
+Just download `Verstable.h` and place it in your project's directory or your shared header directory.
 
 ## Example
 
@@ -75,13 +75,13 @@ Using the generic API (C11 and later):
 // Instantiating a set template.
 #define NAME int_set
 #define KEY_TY int
-#include "fastmap.h"
+#include "verstable.h"
 
 // Instantiating a map template.
 #define NAME int_int_map
 #define KEY_TY int
 #define VAL_TY int
-#include "fastmap.h"
+#include "verstable.h"
 
 int main( void )
 {
@@ -182,7 +182,7 @@ Using the prefixed functions API (C99 and later):
 #define KEY_TY int
 #define HASH_FN fm_hash_integer
 #define CMPR_FN fm_cmpr_integer
-#include "fastmap.h"
+#include "verstable.h"
 
 // Instantiating a map template.
 #define NAME int_int_map
@@ -190,7 +190,7 @@ Using the prefixed functions API (C99 and later):
 #define VAL_TY int
 #define HASH_FN fm_hash_integer
 #define CMPR_FN fm_cmpr_integer
-#include "fastmap.h"
+#include "verstable.h"
 
 int main( void )
 {
@@ -291,7 +291,7 @@ int main( void )
 
 ### How does it work?
 
-Fastmap is an open-addressing hash table using quadratic probing and the following innovations:
+**Verstable** is an open-addressing hash table using quadratic probing and the following innovations:
 
 - All keys that hash (i.e. "belong") to the same bucket (their "home bucket") are linked together by an 11-bit integer specifying the quadratic displacement, relative to that bucket, of the next key in the chain.
 
@@ -317,7 +317,7 @@ The generic API available in C11 is based on the extendible-`_Generic` mechanism
 
 ### How is it tested?
 
-**Fastmap** has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on Fastmap sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
+**Verstable** has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on **Verstable** sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
 
 ## API
 
