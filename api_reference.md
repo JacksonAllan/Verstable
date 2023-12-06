@@ -35,7 +35,7 @@ Otherwise, it acts as a set containing only keys.
 The name of the existing function used to hash each key.  
 The function should have the signature `uint64_t ( KEY_TY )` and return a 64-bit hash code.  
 For best performance, the hash function should provide a high level of entropy across all bits.  
-There are two default hash functions: `fm_hash_integer` for all integer types up to 64 bits in size, and `fm_hash_string` for `NULL`-terminated strings (i.e. `char *`).  
+There are two default hash functions: `vt_hash_integer` for all integer types up to 64 bits in size, and `vt_hash_string` for `NULL`-terminated strings (i.e. `char *`).  
 When `KEY_TY` is one of such types and the compiler is in C11 mode or later, `HASH_FN` may be left undefined, in which case the appropriate default function is inferred from `KEY_TY`.  
 Otherwise, `HASH_FN` must be defined.
 
@@ -45,7 +45,7 @@ Otherwise, `HASH_FN` must be defined.
 
 The name of the existing function used to compare two keys.  
 The function should have the signature `bool ( KEY_TY, KEY_TY )` and return `true` if the two keys are equal.
-There are two default comparison functions: `fm_cmpr_integer` for all integer types up to 64 bits in size, and `fm_cmpr_string` for `NULL`-terminated strings (`i.e. char *`).  
+There are two default comparison functions: `vt_cmpr_integer` for all integer types up to 64 bits in size, and `vt_cmpr_string` for `NULL`-terminated strings (`i.e. char *`).  
 As with the default hash functions, in C11 or later the appropriate default comparison function is inferred if `KEY_TY` is one of such types and `CMPR_FN` is left undefined.  
 Otherwise, `CMPR_FN` must be defined.
 
@@ -110,8 +110,8 @@ In one source file, define `IMPLEMENTATION_MODE`, along with `NAME`, `KEY_TY`, a
 #define NAME     int_int_map
 #define KEY_TY   int
 #define VAL_TY   int
-#define HASH_FN  fm_hash_integer // C99.
-#define CMPR_FN  fm_cmpr_integer // C99.
+#define HASH_FN  vt_hash_integer // C99.
+#define CMPR_FN  vt_cmpr_integer // C99.
 #define MAX_LOAD 0.8
 #define IMPLEMENTATION_MODE
 #include "verstable.h"
@@ -124,29 +124,29 @@ Including the library automatically undefines all the aforementioned macros afte
 ## Functions
 
 The functions associated with a hash table type are all prefixed with the name the user supplied via the NAME macro.  
-In C11 and later, the generic `fm_`-prefixed macros may be used to automatically select the correct version of the specified function based on the arguments.
+In C11 and later, the generic `vt_`-prefixed macros may be used to automatically select the correct version of the specified function based on the arguments.
 
 ```c
-void NAME_init( NAME *table ) // C11 generic macro: fm_init.
+void NAME_init( NAME *table ) // C11 generic macro: vt_init.
 ```
 
 Initializes the table for use.
 
 ```c
-bool NAME_init_clone( NAME *table, NAME *source ) // C11 generic macro: fm_init_clone.
+bool NAME_init_clone( NAME *table, NAME *source ) // C11 generic macro: vt_init_clone.
 ```
 
 Initializes the table as a shallow copy of the specified source table.  
 Returns `false` in the case of memory allocation failure.
 
 ```c
-size_t NAME_size( NAME *table ) // C11 generic macro: fm_size.
+size_t NAME_size( NAME *table ) // C11 generic macro: vt_size.
 ```
 
 Returns the number of keys currently in the table.
 
 ```c
-size_t NAME_bucket_count( NAME *table ) // C11 generic macro: fm_bucket_count.
+size_t NAME_bucket_count( NAME *table ) // C11 generic macro: vt_bucket_count.
 ```
 
 Returns the table's current bucket count.
@@ -154,7 +154,7 @@ Returns the table's current bucket count.
 ```c
 NAME_itr NAME_insert( NAME *table, KEY_TY key )
 NAME_itr NAME_insert( NAME *table, KEY_TY key, VAL_TY val )
-// C11 generic macro: fm_insert.
+// C11 generic macro: vt_insert.
 ```
 
 Inserts the specified key (and value, if `VAL_TY` was defined) into the hash table.  
@@ -164,7 +164,7 @@ Returns an iterator to the new key, or an end iterator in the case of memory all
 ```c
 NAME_itr NAME_get_or_insert( NAME *table, KEY_TY key )
 NAME_itr NAME_get_or_insert( NAME *table, KEY_TY key, VAL_TY val )
-// C11 generic macro: fm_get_or_insert.
+// C11 generic macro: vt_get_or_insert.
 ```
 
 Inserts the specified key (and value, if `VAL_TY` was defined) if it does not already exist in the table.  
@@ -172,65 +172,65 @@ Returns an iterator to new key if it was inserted, or an iterator to the existin
 Determine whether the key was inserted by comparing the table's size before and after the call.
 
 ```c
-NAME_itr NAME_get( NAME *table, KEY_TY key ) // C11 generic macro: fm_get.
+NAME_itr NAME_get( NAME *table, KEY_TY key ) // C11 generic macro: vt_get.
 ```
 
 Returns a iterator to the specified key, or an end iterator if no such key exists.
 
 ```c
-bool NAME_erase( NAME *table, KEY_TY key ) // C11 generic macro: fm_erase.
+bool NAME_erase( NAME *table, KEY_TY key ) // C11 generic macro: vt_erase.
 ```
 
 Erases the specified key (and associated value, if `VAL_TY` was defined), if it exists.  
 Returns `true` if a key was erased.
 
 ```c
-NAME_itr NAME_erase_itr( NAME *table, NAME_itr itr ) // C11 generic macro: fm_erase_itr.
+NAME_itr NAME_erase_itr( NAME *table, NAME_itr itr ) // C11 generic macro: vt_erase_itr.
 ```
 
 Erases the key (and associated value, if `VAL_TY` was defined) pointed to by the specified iterator.  
 Returns an iterator to the next key in the table, or an end iterator if the erased key was the last one.
 
 ```c
-bool NAME_reserve( NAME *table, size_t size ) // C11 generic macro: fm_reserve.
+bool NAME_reserve( NAME *table, size_t size ) // C11 generic macro: vt_reserve.
 ```
 
 Ensures that the bucket count is large enough to support the specified key count (i.e. size) without rehashing.  
 Returns `false` if unsuccessful due to memory allocation failure.
 
 ```c
-bool NAME_shrink( NAME *table ) // C11 generic macro: fm_shrink.
+bool NAME_shrink( NAME *table ) // C11 generic macro: vt_shrink.
 ```
 
 Shrinks the bucket count to best accommodate the current size.  
 Returns `false` if unsuccessful due to memory allocation failure.
 
 ```c
-NAME_itr NAME_first( NAME *table ) // C11 generic macro: fm_first.
+NAME_itr NAME_first( NAME *table ) // C11 generic macro: vt_first.
 ```
 
 Returns an iterator to the first key in the table, or an end iterator if the table is empty.
 
 ```c
-bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: fm_is_end.
+bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: vt_is_end.
 ```
 
 Returns true if the iterator is an end iterator.
 
 ```c
-NAME_itr NAME_next( NAME_itr itr ) // C11 generic macro: fm_next.
+NAME_itr NAME_next( NAME_itr itr ) // C11 generic macro: vt_next.
 ```
 
 Returns an iterator to the key after the one pointed to by the specified iterator, or an end iterator if the specified iterator points to the last key in the table.
 
 ```c
-void NAME_clear( NAME *table ) // C11 generic macro: fm_clear.
+void NAME_clear( NAME *table ) // C11 generic macro: vt_clear.
 ```
 
 Erases all keys (and values, if `VAL_TY` was defined) in the table.
 
 ```c
-void NAME_cleanup( NAME *table ) // C11 generic macro: fm_cleanup.
+void NAME_cleanup( NAME *table ) // C11 generic macro: vt_cleanup.
 ```
 
 Erases all keys (and values, if `VAL_TY` was defined) in the table, frees all memory associated with it, and initializes it for reuse.
