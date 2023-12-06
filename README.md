@@ -4,11 +4,6 @@
 
 Its features include:
 
-```mermaid
-xychart-beta
-    line [+1.3, .6, 2.4, -.34]
-```
-
 <table>
 <tr>
 <td valign="top" width="50%">
