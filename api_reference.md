@@ -7,7 +7,7 @@ Create a new hash table type in the following manner:
 ```c
 #define NAME   <your chosen type name>
 #define KEY_TY <type>
-#include "fastmap.h"
+#include "verstable.h"
 ```
 
 The `NAME` macro specifies the name of hash table type that the library will declare, the prefix for the functions associated with it, and the prefix for the associated iterator type.
@@ -100,7 +100,7 @@ In that case, instantiate a template wherever it is needed by defining `HEADER_M
 #define KEY_TY int
 #define VAL_TY int
 #define HEADER_MODE
-#include "fastmap.h"
+#include "verstable.h"
 #endif
 ```
 
@@ -114,7 +114,7 @@ In one source file, define `IMPLEMENTATION_MODE`, along with `NAME`, `KEY_TY`, a
 #define CMPR_FN  fm_cmpr_integer // C99.
 #define MAX_LOAD 0.8
 #define IMPLEMENTATION_MODE
-#include "fastmap.h"
+#include "verstable.h"
 ```
 
 </dd></dl>
