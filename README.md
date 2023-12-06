@@ -323,5 +323,6 @@ The generic API available in C11 is based on the extendible-`_Generic` mechanism
 
 **Verstable** has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on **Verstable** sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
 
-## Why "Verstable"?
+# Why "Verstable"?
 
+The name of the library refects its versatility.
