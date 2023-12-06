@@ -44,7 +44,7 @@
 					margin: 0;
 					width: 100%;
 					height: 100px;
-					background: linear-gradient(-45deg, #62658c, #475269, #694040);
+					background: linear-gradient(-45deg, #694040, #475269, #62658c );
 					background-size: 600% 400%;
 					animation: gradientBackground 20s ease infinite;
 					color: white;
@@ -58,7 +58,7 @@
 				}
 			</style>
 			<div class="container">
-				<h1>Fastmap</h1>
+				<h1>Verstable</h1>
 			</div>
 		</div>
 	</foreignObject>
