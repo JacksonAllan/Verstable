@@ -1,4 +1,4 @@
-# Fastmap API Reference
+# Verstable API Reference
 
 ## Instantiating a hash table template
 
