@@ -19,7 +19,7 @@ API:
 <td valign="top" width="50%">
 
 Performance:
-- High speed impervious to load factor.
+- High speed mostly impervious to load factor.
 - Two bytes of overhead per bucket.
 - Tombstones-free deletion.
 
@@ -43,7 +43,7 @@ API:
 <td valign="top">
 Performance:
 <ul>
-<li>High speed impervious to load factor.</li>
+<li>High speed mostly impervious to load factor.</li>
 <li>Two bytes of overhead per bucket.</li>
 <li>Tombstones-free deletion.</li>
 </ul>
