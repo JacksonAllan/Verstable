@@ -287,6 +287,10 @@ int main( void )
 </tr>
 </table>
 
+## API
+
+Full API documentation is available [here](api_reference.md).
+
 ## FAQ
 
 ### How does it work?
@@ -299,7 +303,7 @@ int main( void )
 
 - A 4-bit fragment of each key's hash code is also stored.
 
-- The aforementioned metadata associated with each bucket (the 4-bit hash fragment, the 1-bit flag, and the 11-bit link to the next key in the chain) are stored together in a uint16_t array rather than in the bucket alongside the key and (optionally) the value.
+- The aforementioned metadata associated with each bucket (the 4-bit hash fragment, the 1-bit flag, and the 11-bit link to the next key in the chain) are stored together in a `uint16_t` array rather than in the bucket alongside the key and (optionally) the value.
 
 One way to conceptualize this design is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the design discussed by Malte Skarupke's Bytell hash table, which is detailed [here](https://www.youtube.com/watch?v=M2fKMP47slQ).
 
@@ -319,6 +323,5 @@ The generic API available in C11 is based on the extendible-`_Generic` mechanism
 
 **Verstable** has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on **Verstable** sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
 
-## API
+## Why "Verstable"?
 
-Full API documentation is available [here](api_reference.md).
