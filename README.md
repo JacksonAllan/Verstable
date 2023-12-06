@@ -305,13 +305,13 @@ Full API documentation is available [here](api_reference.md).
 
 - The aforementioned metadata associated with each bucket (the 4-bit hash fragment, the 1-bit flag, and the 11-bit link to the next key in the chain) are stored together in a `uint16_t` array rather than in the bucket alongside the key and (optionally) the value.
 
-One way to conceptualize this design is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the design discussed by Malte Skarupke's Bytell hash table, which is detailed [here](https://www.youtube.com/watch?v=M2fKMP47slQ).
+One way to conceptualize this scheme is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the scheme discussed by Malte Skarupke's Bytell hash table, which is detailed [here](https://www.youtube.com/watch?v=M2fKMP47slQ).
 
-Advantages of this design include:
+Advantages of this scheme include:
 
 - Fast lookups impervious to load factor: If the table contains any key belonging to the lookup key's home bucket, then that bucket contains the first in a traversable chain of all keys belonging to it. Hence, only the home bucket and other buckets containing keys belonging to it are ever probed. Moreover, the stored hash fragments allow skipping most non-matching keys in the chain without accessing the actual buckets array or calling the (potentially expensive) key comparison function.
 
-- Fast insertions: Insertions are faster than they are in other designs that move keys around (e.g. Robin Hood) because they only move, at most, one existing key.
+- Fast insertions: Insertions are faster than they are in other schemes that move keys around (e.g. Robin Hood) because they only move, at most, one existing key.
 
 - Fast, tombstone-free deletions: Deletions, which usually require tombstones in quadratic-probing hash tables, are tombstone-free and only move, at most, one existing key.
 
@@ -325,4 +325,4 @@ The generic API available in C11 is based on the extendible-`_Generic` mechanism
 
 ### Why the name?
 
-“Verstable” implies versatility. **Verstable** handles a variety of conditions with which other hash table schemes struggle—including large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance degradation. In other words, it is designed to be a good default choice of hash table for most use cases.
+“Verstable” is a contraction of “versatile table”. **Verstable** handles a variety of conditions with which other hash table schemes struggle—including large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance degradation. In other words, it is designed to be a good default choice of hash table for most use cases.
