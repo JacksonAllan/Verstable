@@ -225,8 +225,8 @@ int main( void )
   for(
   	int_set_itr itr =
       int_set_first( &our_set );
-  	!int_set_is_end( itr );
-  	itr = int_set_next( itr )
+    !int_set_is_end( itr );
+    itr = int_set_next( itr )
   )
     printf( "%d ", itr.data->key );
   // Printed: 4 5 2 8 1 7
@@ -269,8 +269,8 @@ int main( void )
   for(
     int_int_map_itr itr =
       int_int_map_first( &our_map );
-  	!int_int_map_is_end( itr );
-  	itr = int_int_map_next( itr )
+    !int_int_map_is_end( itr );
+    itr = int_int_map_next( itr )
   )
     printf(
       "%d:%d ",
