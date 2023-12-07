@@ -27,30 +27,6 @@ Performance:
 </tr>
 </table>
 
-
-<table>
-<tr>
-<td valign="top">
-API:
-<ul>
-<li>Type safety.</li>
-<li>Customizable hash, comparison, and destructor functions.</li>
-<li>Single header.</li>
-<li>C99 compatibility.</li>
-<li>Generic API in C11 and later.</li>
-</ul>
-</td>
-<td valign="top">
-Performance:
-<ul>
-<li>High speed mostly impervious to load factor.</li>
-<li>Two bytes of overhead per bucket.</li>
-<li>Tombstones-free deletion.</li>
-</ul>
-</td>
-</tr>
-</table>
-
 Benchmarks comparing **Verstable** to the aforementioned hash tables and several Robin Hood-based hash tables are available here.----
 
 **Verstable** is distributed under the MIT license.
