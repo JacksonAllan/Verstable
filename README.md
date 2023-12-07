@@ -271,7 +271,7 @@ Full API documentation is available [here](api_reference.md).
 
 ### How does it work?
 
-**Verstable** is an open-addressing hash table using quadratic probing and the following innovations:
+**Verstable** is an open-addressing hash table using quadratic probing and the following additions:
 
 - All keys that hash (i.e. "belong") to the same bucket (their "home bucket") are linked together by an 11-bit integer specifying the quadratic displacement, relative to that bucket, of the next key in the chain.
 
