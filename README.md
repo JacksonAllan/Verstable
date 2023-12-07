@@ -27,7 +27,7 @@ Performance:
 </tr>
 </table>
 
-Benchmarks comparing **Verstable** to the aforementioned hash tables and several [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/)-based hash tables are available here.----
+Benchmarks comparing **Verstable** to the aforementioned hash tables and several [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/)-based hash tables are available here.-------
 
 **Verstable** is distributed under the MIT license.
 
@@ -35,7 +35,7 @@ Try it online here.--------
 
 ## Installation
 
-Just download `verstable.h` and place it in your project's directory or your shared header directory.
+Just [download](verstable.h?raw=1) `verstable.h` and place it in your project's directory or your common header directory.
 
 ## Example
 
