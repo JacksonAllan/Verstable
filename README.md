@@ -43,7 +43,7 @@ Just [download](verstable.h?raw=1) `verstable.h` and place it in your project's 
 <tr></tr>
 <tr>
 <td valign="top">
-Using the generic API (C11 and later):
+Using the generic macro API (C11 and later):
 
 ```c
 #include <stdio.h>
