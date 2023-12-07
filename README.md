@@ -27,7 +27,7 @@ Performance:
 </tr>
 </table>
 
-Benchmarks comparing **Verstable** to the aforementioned hash tables and several Robin Hood-based hash tables are available here.----
+Benchmarks comparing **Verstable** to the aforementioned hash tables and several [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/)-based hash tables are available here.----
 
 **Verstable** is distributed under the MIT license.
 
