@@ -20,7 +20,7 @@ API:
 
 Performance:
 - High speed mostly impervious to load factor.
-- Two bytes of overhead per bucket.
+- Only two bytes of overhead per bucket.
 - Tombstones-free deletion.
 
 </td>
