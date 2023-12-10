@@ -281,7 +281,7 @@ Full API documentation is available [here](api_reference.md).
 
 - The aforementioned metadata associated with each bucket (the 4-bit hash fragment, the 1-bit flag, and the 11-bit link to the next key in the chain) are stored together in a `uint16_t` array rather than in the bucket alongside the key and (optionally) the value.
 
-One way to conceptualize this scheme is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it is similar to the scheme discussed by Malte Skarupke's Bytell hash table, which is detailed [here](https://www.youtube.com/watch?v=M2fKMP47slQ).
+One way to conceptualize this scheme is as a chained hash table in which overflowing keys are stored not in separate memory allocations but in otherwise unused buckets. In this regard, it shares similarities with Malte Skarupke’s [Bytell](https://www.youtube.com/watch?v=M2fKMP47slQ) hash table and the "coalesced hashing" of yesteryear.
 
 Advantages of this scheme include:
 
