@@ -45,7 +45,7 @@ Otherwise, `HASH_FN` must be defined.
 
 The name of the existing function used to compare two keys.  
 The function should have the signature `bool ( KEY_TY, KEY_TY )` and return `true` if the two keys are equal.
-There are two default comparison functions: `vt_cmpr_integer` for all integer types up to 64 bits in size, and `vt_cmpr_string` for `NULL`-terminated strings (`i.e. char *`).  
+There are two default comparison functions: `vt_cmpr_integer` for all integer types up to 64 bits in size, and `vt_cmpr_string` for `NULL`-terminated strings (i.e. `char *`).  
 As with the default hash functions, in C11 or later the appropriate default comparison function is inferred if `KEY_TY` is one of such types and `CMPR_FN` is left undefined.  
 Otherwise, `CMPR_FN` must be defined.
 
