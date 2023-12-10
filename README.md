@@ -301,4 +301,4 @@ The generic macro API available in C11 is based on the extendible-`_Generic` mec
 
 ### Why the name?
 
-The name is a contraction of “versatile table”. **Verstable** handles various conditions that strain other hash table schemes—such as large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance loss. In other words, it is designed to be a good default choice of hash table for most use cases.
+The name is a contraction of "versatile table". **Verstable** handles various conditions that strain other hash table schemes—such as large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance loss. In other words, it is designed to be a good default choice of hash table for most use cases.
