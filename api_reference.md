@@ -123,7 +123,7 @@ Including the library automatically undefines all the aforementioned macros afte
 
 ## Functions
 
-The functions associated with a hash table type are all prefixed with the name the user supplied via the NAME macro.  
+The functions associated with a hash table type are all prefixed with the name the user supplied via the `NAME` macro.  
 In C11 and later, the generic `vt_`-prefixed macros may be used to automatically select the correct version of the specified function based on the arguments.
 
 ```c
