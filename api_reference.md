@@ -89,7 +89,7 @@ The default is `stdlib.h`'s free.
 #define IMPLEMENTATION_MODE
 ```
 
-By default, all hash table functions are defined as static inline functions, the intent being that a given hash table template should be instantiated once per translation unit; For best performance, this is the recommended way to use the library.  
+By default, all hash table functions are defined as `static inline` functions, the intent being that a given hash table template should be instantiated once per translation unit; For best performance, this is the recommended way to use the library.  
 However, it is also possible separate the struct definitions and function declarations from the function definitions such that one implementation can be shared across all translation units (as in a traditional header and source file pair).  
 In that case, instantiate a template wherever it is needed by defining `HEADER_MODE`, along with only `NAME`, `KEY_TY`, and (optionally) `VAL_TY` and header guards, and including the library, e.g.:
 
