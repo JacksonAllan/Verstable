@@ -75,14 +75,14 @@ The API functions that may call the value destructor are `NAME_insert`, `NAME_er
 ```
 
 The name of the existing function, with the signature `void *( size_t )`, used to allocate memory.  
-The default is stdlib.h's malloc.
+The default is `stdlib.h`'s malloc.
 
 ```c
 #define FREE_FN <function name>
 ```
 
 The name of the existing function, with the signature `void ( void * )`, used to free memory.  
-The default is stdlib.h's free.
+The default is `stdlib.h`'s free.
 
 ```c
 #define HEADER_MODE
