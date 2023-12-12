@@ -1,16 +1,6 @@
-// TODO:
-// * Replace mentions of functions with underscore versions in comments.
-// * Test MSVC
-// * Redo documentation unit tests
-// * Cap max load factor? Test 100
-// * __builtin, endianness. (Done?)
-// * Tests license
-// * README
-// * Benchmarks/Reddit post
-
 /*------------------------------------------------- VERSTABLE v1.0.0 ---------------------------------------------------
 
-Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following innovations:
+Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
 - All keys that hash (i.e. "belong") to the same bucket (their "home bucket") are linked together by an 11-bit integer
   specifying the quadratic displacement, relative to that bucket, of the next key in the chain.
@@ -27,16 +17,16 @@ Verstable is a C99-compatible, open-addressing hash table using quadratic probin
   (optionally) the value.
 
 One way to conceptualize this scheme is as a chained hash table in which overflowing keys are stored not in separate
-memory allocations but in otherwise unused buckets. In this regard, it is similar to the scheme discussed by Malte
-Skarupke here: https://www.youtube.com/watch?v=M2fKMP47slQ.
+memory allocations but in otherwise unused buckets. In this regard, it shares similarities with Malte Skarupke’s Bytell
+hash table (https://www.youtube.com/watch?v=M2fKMP47slQ) and traditional "coalesced hashing".
 
 Advantages of this scheme include:
 
 - Fast lookups impervious to load factor: If the table contains any key belonging to the lookup key's home bucket, then
   that bucket contains the first in a traversable chain of all keys belonging to it. Hence, only the home bucket and
-  other buckets containing keys belonging to it are ever probed.
-  Moreover, the stored hash fragments allow skipping most non-matching keys in the chain without accessing the actual
-  buckets array or calling the (potentially expensive) key comparison function.
+  other buckets containing keys belonging to it are ever probed. Moreover, the stored hash fragments allow skipping most
+  non-matching keys in the chain without accessing the actual buckets array or calling the (potentially expensive) key
+  comparison function.
 
 - Fast insertions: Insertions are faster than they are in other schemes that move keys around (e.g. Robin Hood) because
   they only move, at most, one existing key.
@@ -241,7 +231,7 @@ API:
       #define IMPLEMENTATION_MODE
 
         By default, all hash table functions are defined as static inline functions, the intent being that a given hash
-        table template should be instantiated once per translation unit; For best performance, this is the recommended
+        table template should be instantiated once per translation unit; for best performance, this is the recommended
         way to use the library.
         However, it is also possible separate the struct definitions and function declarations from the function
         definitions such that one implementation can be shared across all translation units (as in a traditional header
@@ -361,7 +351,7 @@ API:
 
   Iterators:
 
-    Access the key (and value, if VAL_TY was defined) that an iterator points to using the iterator struct's data field:
+    Access the key (and value, if VAL_TY was defined) that an iterator points to using the NAME_itr struct's data field:
 
       itr.data->key
       itr.data->val
@@ -372,7 +362,7 @@ API:
 
 Version history:
 
-  --/--/2023 1.0.0: Initial release.
+  12/12/2023 1.0.0: Initial release.
 
 License (MIT):
 
@@ -402,8 +392,8 @@ License (MIT):
 /*                                               Common header section                                                */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
-#ifndef FASTMAP_H
-#define FASTMAP_H
+#ifndef VERSTABLE_H
+#define VERSTABLE_H
 
 #include <limits.h>
 #include <stddef.h>
@@ -411,7 +401,7 @@ License (MIT):
 #include <stdbool.h>
 #include <string.h>
 
-// Standard concatenation macro.
+// Two-way concatenation macro.
 #define VT_CAT_( a, b ) a##b
 #define VT_CAT( a, b ) VT_CAT_( a, b )
 
@@ -419,8 +409,8 @@ License (MIT):
 #define VT_EMPTY               0x0000
 #define VT_HASH_FRAG_MASK      0xF000 // 0b1111000000000000.
 #define VT_IN_HOME_BUCKET_MASK 0x0800 // 0b0000100000000000.
-#define VT_DISPLACEMENT_MASK   0x07FF // 0b0000011111111111, also denotes the displacement limit. Set to something like
-                                      // 0x003F to test proper handling of encroachment on the displacement limit during
+#define VT_DISPLACEMENT_MASK   0x07FF // 0b0000011111111111, also denotes the displacement limit. Set to VT_LOAD to 1.0
+                                      // to test proper handling of encroachment on the displacement limit during
                                       // inserts.
 
 // Extracts a hash fragment from a uint64_t hash code.
@@ -432,7 +422,7 @@ License (MIT):
 // high).
 #define VT_QUADRATIC( displacement ) ( ( (displacement) * (displacement) + (displacement) ) / 2 )
 
-#define VT_MIN_NONZERO_BUCKET_COUNT  16 // Must be a power of two.
+#define VT_MIN_NONZERO_BUCKET_COUNT  8 // Must be a power of two.
 
 // Function to find the left-most non-zero uint16_t in a uint64_t.
 // This function is used when we scan four buckets at a time while iterating and relies on compiler intrinsics wherever
@@ -499,19 +489,20 @@ static const uint16_t vt_placeholder_metadata_buffer[ 4 ] = { 0xFFFF, 0xFFFF, 0x
 
 static inline uint64_t vt_hash_integer( uint64_t key )
 {
-  key ^= key >> 33U;
-  key *= UINT64_C( 0xff51afd7ed558ccd );
-  key ^= key >> 33U;
-  key *= UINT64_C( 0xc4ceb9fe1a85ec53 );
-  key ^= key >> 33U;
+  key ^= key >> 33;
+  key *= 0xff51afd7ed558ccdull;
+  key ^= key >> 33;
+  key *= 0xc4ceb9fe1a85ec53ull;
+  key ^= key >> 33;
   return key;
 }
 
+// FNV-1a.
 static inline uint64_t vt_hash_string( char *key )
 {
-  uint64_t hash = 0xcbf29ce484222325;
+  uint64_t hash = 0xcbf29ce484222325ull;
   while( *key )
-    hash = ( (unsigned char)*key++ ^ hash ) * 0x100000001b3;
+    hash = ( (unsigned char)*key++ ^ hash ) * 0x100000001b3ull;
 
   return hash;
 }
@@ -530,8 +521,8 @@ static inline bool vt_cmpr_string( char *key_1, char *key_2 )
 // This interface is based on the extendible-_Generic mechanism documented in detail at
 // https://github.com/JacksonAllan/CC/blob/main/articles/Better_C_Generics_Part_1_The_Extendible_Generic.md.
 // In summary, instantiating a template also defines wrappers for the template's types and functions with names in the
-// pattern of vt_table_NNN, vt_table_itr_NNN, and vt_init_NNN, where NNN is an automatically generated integer unique
-// to the template instance in the current translation unit.
+// pattern of vt_table_NNN and vt_init_NNN, where NNN is an automatically generated integer unique to the template
+// instance in the current translation unit.
 // These wrappers plug in to _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
 // slots for every existing template instance.
 #if __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
@@ -541,6 +532,7 @@ static inline bool vt_cmpr_string( char *key_1, char *key_2 )
 #define VT_TEMPLATE_COUNT_D2 0
 #define VT_TEMPLATE_COUNT_D3 0
 
+// Four-way concatenation macro.
 #define VT_CAT_4_( a, b, c, d ) a##b##c##d
 #define VT_CAT_4( a, b, c, d )  VT_CAT_4_( a, b, c, d )
 
@@ -644,7 +636,7 @@ typedef struct
 {
   VT_CAT( NAME, _bucket ) *data;
   uint16_t *metadatum;
-  uint16_t *metadata_end; // Iterators carry an internal end pointer so that _is_end does not need the table to be
+  uint16_t *metadata_end; // Iterators carry an internal end pointer so that NAME_is_end does not need the table to be
                           // passed in as an argument.
   size_t home_bucket; // SIZE_MAX if home bucket is unknown.
 } VT_CAT( NAME, _itr );
@@ -719,11 +711,11 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _clear )( NAME * );
 
 VT_API_FN_QUALIFIERS void VT_CAT( NAME, _cleanup )( NAME * );
 
-// Not an API function, but must be prototyped anyway because it is called by the inline erase_itr below.
+// Not an API function, but must be prototyped anyway because it is called by the inline NAME_erase_itr below.
 VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *, VT_CAT( NAME, _itr ) );
 
 // Erases the key pointed to by itr and returns an iterator to the next key in the table.
-// This function must be inlined to ensure that the compiler optimizes away the _fast_forward call if the returned
+// This function must be inlined to ensure that the compiler optimizes away the NAME_fast_forward call if the returned
 // iterator is discarded.
 #ifdef __GNUC__
 __attribute__((always_inline)) static inline
@@ -770,7 +762,8 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #if __STDC_VERSION__ >= 201112L
 #define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer )
 #else
-#error In C99 mode, you need to define HASH_FN manually.
+#error Hash function inference is only available in C11 and later. In C99, you need to define HASH_FN manually to \
+vt_hash_integer, vt_hash_string, or your own custom function with the signature uint64_t ( KEY_TY ).
 #endif
 #endif
 
@@ -778,7 +771,8 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #if __STDC_VERSION__ >= 201112L
 #define CMPR_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer )
 #else
-#error In C99 mode, you need to define CMPR_FN manually.
+#error Comparison function inference is only available in C11 and later. In C99, you need to define CMPR_FN manually \
+to vt_cmpr_integer, vt_cmpr_string, or your own custom function with the signature bool ( KEY_TY, KEY_TY ).
 #endif
 #endif
 
@@ -847,14 +841,18 @@ static inline bool VT_CAT( NAME, _find_first_empty )(
 )
 {
   *displacement = 1;
+  size_t linear_dispacement = 1;
+
   while( true )
   {
-    *empty = ( home_bucket + VT_QUADRATIC( *displacement ) ) & ( table->bucket_count - 1 );
+    *empty = ( home_bucket + linear_dispacement ) & ( table->bucket_count - 1 );
     if( table->metadata[ *empty ] == VT_EMPTY )
       return true;
 
     if( ++*displacement == VT_DISPLACEMENT_MASK )
       return false;
+
+    linear_dispacement += *displacement;
   }
 }
 
@@ -884,7 +882,7 @@ static inline size_t VT_CAT( NAME, _find_insert_location_in_chain )(
 // beginning of a new chain.
 // This requires:
 // * Finding the previous key in the chain to which the occupying belongs by rehashing it and then traversing the chain.
-// * Disconnect the key from the chain.
+// * Disconnecting the key from the chain.
 // * Finding the appropriate empty bucket to which to move the key.
 // * Moving the key (and value) data to the empty bucket.
 // * Re-linking the key to the chain.
@@ -897,8 +895,8 @@ static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
   size_t prev = home_bucket;
   while( true )
   {
-    size_t next = ( home_bucket + VT_QUADRATIC( table->metadata[ prev ] & VT_DISPLACEMENT_MASK ) ) & ( table->bucket_count -
-      1 );
+    size_t next = ( home_bucket + VT_QUADRATIC( table->metadata[ prev ] & VT_DISPLACEMENT_MASK ) ) & (
+      table->bucket_count - 1 );
     if( next == bucket )
       break;
 
@@ -933,7 +931,8 @@ static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
 // This function just cleans up the library code in functions that return an end iterator as a failure indicator.
 static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _end_itr )( NAME *table )
 {
-  return ( VT_CAT( NAME, _itr ) ){ NULL, NULL, NULL, 0 };
+  VT_CAT( NAME, _itr ) itr = { NULL, NULL, NULL, 0 };
+  return itr;
 }
 
 // Inserts a key, optionally replacing the existing key if it already exists.
@@ -942,8 +941,8 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _end_itr )( NAME *table )
 //   evicting the occupying key if there is one.
 // * Otherwise, the chain of keys beginning at the home bucket is (if unique is false) traversed in search of a matching
 //   key.
-//   If none is found, then the new key is inserted at the first available bucket, per quadratic probing, and then
-//   linked to the chain in a manner that maintains its quadratic order.
+//   If none is found, then the new key is inserted at the earliest available bucket, per quadratic probing from the
+//   home bucket, and then linked to the chain in a manner that maintains its quadratic order.
 // The unique argument tells the function whether to skip searching for the key before inserting it (on rehashing, this
 // step is unnecessary).
 // The replace argument tells the function whether to replace an exiting key.
@@ -983,13 +982,16 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
     table->buckets[ home_bucket ].val = val;
     #endif
     table->metadata[ home_bucket ] = hashfrag | VT_IN_HOME_BUCKET_MASK | VT_DISPLACEMENT_MASK;
+
     ++table->key_count;
-    return ( VT_CAT( NAME, _itr ) ){
+
+    VT_CAT( NAME, _itr ) itr = {
       table->buckets + home_bucket,
       table->metadata + home_bucket,
       table->metadata + table->bucket_count,
       home_bucket
     };
+    return itr;
   }
 
   // Case 2: The home bucket contains the beginning of a chain.
@@ -1000,7 +1002,10 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
     size_t bucket = home_bucket;
     while( true )
     {
-      if( ( table->metadata[ bucket ] & VT_HASH_FRAG_MASK ) == hashfrag && CMPR_FN( table->buckets[ bucket ].key, key ) )
+      if(
+        ( table->metadata[ bucket ] & VT_HASH_FRAG_MASK ) == hashfrag &&
+        CMPR_FN( table->buckets[ bucket ].key, key )
+      )
       {
         if( replace )
         {
@@ -1017,12 +1022,13 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
           #endif
         }
 
-        return ( VT_CAT( NAME, _itr ) ){
+        VT_CAT( NAME, _itr ) itr = {
           table->buckets + bucket,
           table->metadata + bucket,
           table->metadata + table->bucket_count,
           home_bucket
         };
+        return itr;
       }
 
       uint16_t displacement = table->metadata[ bucket ] & VT_DISPLACEMENT_MASK;
@@ -1053,12 +1059,15 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
   table->metadata[ prev ] = ( table->metadata[ prev ] & ~VT_DISPLACEMENT_MASK ) | displacement;
 
   ++table->key_count;
-  return ( VT_CAT( NAME, _itr ) ){
+
+
+  VT_CAT( NAME, _itr ) itr = {
     table->buckets + empty,
     table->metadata + empty,
     table->metadata + table->bucket_count,
     home_bucket
   };
+  return itr;
 }
 
 // Resizes the bucket array.
@@ -1158,8 +1167,8 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert )(
   }
 }
 
-// Same as _insert, except that if the key already exists, no insertion occurs and the function returns an iterator for
-// the existing key.
+// Same as NAME_insert, except that if the key already exists, no insertion occurs and the function returns an iterator
+// to the existing key.
 VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get_or_insert )(
   NAME *table,
   KEY_TY key
@@ -1210,12 +1219,15 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )(
   while( true )
   {
     if( ( table->metadata[ bucket ] & VT_HASH_FRAG_MASK ) == hashfrag && CMPR_FN( table->buckets[ bucket ].key, key ) )
-      return ( VT_CAT( NAME, _itr ) ){
+    {
+      VT_CAT( NAME, _itr ) itr = {
         table->buckets + bucket,
         table->metadata + bucket,
         table->metadata + table->bucket_count,
         home_bucket
-    };
+      };
+      return itr;
+    }
 
     uint16_t displacement = table->metadata[ bucket ] & VT_DISPLACEMENT_MASK;
     if( displacement == VT_DISPLACEMENT_MASK )
@@ -1560,7 +1572,7 @@ static inline void VT_CAT( vt_cleanup_, VT_TEMPLATE_COUNT )( NAME *table )
   VT_CAT( NAME, _cleanup )( table );
 }
 
-// Increment the counter.
+// Increment the template counter.
 #if     VT_TEMPLATE_COUNT_D1 == 0
 #undef  VT_TEMPLATE_COUNT_D1
 #define VT_TEMPLATE_COUNT_D1 1
@@ -1631,7 +1643,8 @@ static inline void VT_CAT( vt_cleanup_, VT_TEMPLATE_COUNT )( NAME *table )
 #undef  VT_TEMPLATE_COUNT_D3
 #define VT_TEMPLATE_COUNT_D3 7
 #elif   VT_TEMPLATE_COUNT_D3 == 7
-#error  Sorry, the number of template instances is limited to 511.
+#error  Sorry, the number of template instances is limited to 511. Define VT_NO_C11_GENERIC_API globally and use the \
+C99 prefixed function API to circumvent this restriction.
 #endif
 #endif
 #endif
