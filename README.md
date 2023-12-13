@@ -199,7 +199,7 @@ int main( void )
 
   // Iteration.
   for(
-  	int_set_itr itr =
+    int_set_itr itr =
       int_set_first( &our_set );
     !int_set_is_end( itr );
     itr = int_set_next( itr )
