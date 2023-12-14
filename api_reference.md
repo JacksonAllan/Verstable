@@ -168,7 +168,7 @@ NAME_itr NAME_get_or_insert( NAME *table, KEY_TY key, VAL_TY val )
 ```
 
 Inserts the specified key (and value, if `VAL_TY` was defined) if it does not already exist in the table.  
-Returns an iterator to new key if it was inserted, or an iterator to the existing key, or an end iterator if the key did not exist but the new key could not be inserted because of memory allocation failure.  
+Returns an iterator to the new key if it was inserted, or an iterator to the existing key, or an end iterator if the key did not exist but the new key could not be inserted because of memory allocation failure.  
 Determine whether the key was inserted by comparing the table's size before and after the call.
 
 ```c
@@ -215,7 +215,7 @@ Returns an iterator to the first key in the table, or an end iterator if the tab
 bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: vt_is_end.
 ```
 
-Returns true if the iterator is an end iterator.
+Returns `true` if the iterator is an end iterator.
 
 ```c
 NAME_itr NAME_next( NAME_itr itr ) // C11 generic macro: vt_next.
