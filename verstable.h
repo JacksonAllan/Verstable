@@ -525,7 +525,7 @@ static inline bool vt_cmpr_string( char *key_1, char *key_2 )
 // instance in the current translation unit.
 // These wrappers plug in to _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
 // slots for every existing template instance.
-#if __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
 
 // Octal counter that supports up to 511 hash table templates.
 #define VT_TEMPLATE_COUNT_D1 0 // Digit 1, i.e. least significant digit.
@@ -931,6 +931,7 @@ static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
 // This function just cleans up the library code in functions that return an end iterator as a failure indicator.
 static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _end_itr )( NAME *table )
 {
+  (void)table;
   VT_CAT( NAME, _itr ) itr = { NULL, NULL, NULL, 0 };
   return itr;
 }
@@ -1463,7 +1464,7 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _cleanup )( NAME *table )
 /*                                Wrapper types and functions for the C11 generic API                                 */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
-#if __STDC_VERSION__ >= 201112L && !defined( IMPLEMENTATION_MODE ) && !defined( VT_NO_C11_GENERIC_API )
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined( IMPLEMENTATION_MODE ) && !defined( VT_NO_C11_GENERIC_API )
 
 typedef NAME VT_CAT( vt_table_, VT_TEMPLATE_COUNT );
 typedef VT_CAT( NAME, _itr ) VT_CAT( vt_table_itr_, VT_TEMPLATE_COUNT );
