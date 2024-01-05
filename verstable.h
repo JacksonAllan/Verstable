@@ -227,6 +227,19 @@ API:
         The name of the existing function, with the signature void ( void * ), used to free memory.
         The default is stdlib.h's free.
 
+      #define ALLOC_FN <function name>
+
+        The name of the existing function, with the signature of void *( VT_Allocation, size_t, void *), used to allocate memory.
+        VT_Allocation provides intention and second pointer is the previous allocation (if any).
+        The default is a thin wrapper over MALLOC_FN.
+
+      #define ALLOC_FREE_FN <function name>
+
+        The name of the existing function, with the signature void ( VT_Allocation, void * ), used to free memory.
+        VT_Allocation provides intention.
+        The default is a thin wrapper over FREE_FN.
+
+
       #define HEADER_MODE
       #define IMPLEMENTATION_MODE
 
@@ -758,6 +771,30 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #define FREE_FN free
 #endif
 
+#ifndef _vt_alloc_
+#define _vt_alloc_
+
+typedef enum {
+  VT_MetadataAllocation,
+  VT_BucketsAllocation
+} VT_Allocation;
+
+void *_vt_alloc( VT_Allocation allocation, size_t size, void *original ) {
+  return MALLOC_FN( size );
+}
+void _vt_alloc_free( VT_Allocation allocation ,void *data ) {
+  return FREE_FN( data );
+}
+#endif
+
+#ifndef ALLOC_FN
+#define ALLOC_FN _vt_alloc
+#endif
+
+#ifndef ALLOC_FREE_FN
+#define ALLOC_FREE_FN _vt_alloc_free
+#endif
+
 #ifndef HASH_FN
 #if __STDC_VERSION__ >= 201112L
 #define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer )
@@ -796,13 +833,13 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )( NAME *table, NAME *source
     return true;
   }
 
-  table->metadata = (uint16_t *)MALLOC_FN( ( table->bucket_count + 4 ) * sizeof( uint16_t ) );
-  table->buckets = (VT_CAT( NAME, _bucket ) *)MALLOC_FN( table->bucket_count * sizeof( VT_CAT( NAME, _bucket ) ) );
+  table->metadata = (uint16_t *)ALLOC_FN( VT_MetadataAllocation, ( table->bucket_count + 4 ) * sizeof( uint16_t ), NULL );
+  table->buckets = (VT_CAT( NAME, _bucket ) *)ALLOC_FN( VT_BucketsAllocation, table->bucket_count * sizeof( VT_CAT( NAME, _bucket )), NULL );
 
-  if( !table->metadata || !table->buckets )
+  if((!table->metadata || !table->buckets) )
   {
-    FREE_FN( table->metadata );
-    FREE_FN( table->buckets );
+    ALLOC_FREE_FN( VT_MetadataAllocation, table->metadata );
+    ALLOC_FREE_FN( VT_BucketsAllocation, table->buckets );
     return false;
   }
 
@@ -1078,19 +1115,19 @@ static inline bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
 {
   // The attempt to resize the bucket array and rehash the keys must occur inside a loop that incrementally doubles the
   // target bucket count because a failure could theoretically occur at any load factor due to the displacement limit.
-  while( true )
+ while( true )
   {
     NAME new_table = {
       0,
       bucket_count,
-      (uint16_t *)MALLOC_FN( ( bucket_count + 4 ) * sizeof( uint16_t ) ),
-      (VT_CAT( NAME, _bucket ) *)MALLOC_FN( bucket_count * sizeof( VT_CAT( NAME, _bucket ) ) )
+      (uint16_t *)ALLOC_FN( VT_MetadataAllocation, ( bucket_count + 4 ) * sizeof( uint16_t ), table->metadata ),
+      ( VT_CAT( NAME, _bucket ) * )ALLOC_FN( VT_BucketsAllocation, bucket_count * sizeof( VT_CAT( NAME, _bucket ) ), table->buckets )
     };
 
     if( !new_table.metadata || !new_table.buckets )
     {
-      FREE_FN( new_table.metadata );
-      FREE_FN( new_table.buckets );
+      ALLOC_FREE_FN( VT_MetadataAllocation, new_table.metadata );
+      ALLOC_FREE_FN( VT_BucketsAllocation, new_table.buckets );
       return false;
     }
 
@@ -1117,8 +1154,8 @@ static inline bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
 
         if( VT_CAT( NAME, _is_end )( itr ) )
         {
-          FREE_FN( new_table.metadata );
-          FREE_FN( new_table.buckets );
+          ALLOC_FREE_FN( VT_MetadataAllocation, new_table.metadata );
+          ALLOC_FREE_FN( VT_BucketsAllocation, new_table.buckets );
           bucket_count *= 2;
           continue;
         }
@@ -1126,8 +1163,8 @@ static inline bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
 
     if( table->bucket_count )
     {
-      FREE_FN( table->metadata );
-      FREE_FN( table->buckets );
+      ALLOC_FREE_FN( VT_MetadataAllocation, table->metadata );
+      ALLOC_FREE_FN( VT_BucketsAllocation, table->buckets );
     }
 
     *table = new_table;
@@ -1406,8 +1443,8 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _shrink )( NAME *table )
 
   if( bucket_count == 0 )
   {
-    FREE_FN( table->metadata );
-    FREE_FN( table->buckets );
+    ALLOC_FREE_FN( VT_MetadataAllocation, table->metadata );
+    ALLOC_FREE_FN( VT_BucketsAllocation, table->buckets );
     table->bucket_count = 0;
     table->metadata = (uint16_t *)vt_placeholder_metadata_buffer;
     return true;
@@ -1452,8 +1489,9 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _cleanup )( NAME *table )
   VT_CAT( NAME, _clear )( table );
   #endif
 
-  FREE_FN( table->metadata );
-  FREE_FN( table->buckets );
+  ALLOC_FREE_FN( VT_MetadataAllocation, table->metadata );
+  ALLOC_FREE_FN( VT_BucketsAllocation, table->buckets );
+
   VT_CAT( NAME, _init )( table );
 }
 
@@ -1661,6 +1699,8 @@ C99 prefixed function API to circumvent this restriction.
 #undef VAL_DTOR_FN
 #undef MALLOC_FN
 #undef FREE_FN
+#undef ALLOC_FN
+#undef ALLOC_FREE_FN
 #undef HEADER_MODE
 #undef IMPLEMENTATION_MODE
 #undef VT_API_FN_QUALIFIERS
