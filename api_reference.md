@@ -83,7 +83,7 @@ It is intended to be used in conjunction with `MALLOC_FN` and `FREE_FN` (see bel
 ```
 
 The name of the existing function used to allocate memory.  
-If `CTX_TY` was defined, the signature should be void `*( size_t size, CTX_TY *ctx )`, where size is the number of bytes to allocate and ctx points to the table's ctx member.  
+If `CTX_TY` was defined, the signature should be `void *( size_t size, CTX_TY *ctx )`, where size is the number of bytes to allocate and ctx points to the table's ctx member.  
 Otherwise, the signature should be `void *( size_t size )`.  
 The default wraps `stdlib.h`'s malloc.
 
@@ -255,7 +255,7 @@ Erases all keys (and values, if `VAL_TY` was defined) in the table, frees all me
 
 ## Iterators
 
-Access the key (and value, if `VAL_TY` was defined) that an iterator points to using the `NAME_itr` struct's data field:
+Access the key (and value, if `VAL_TY` was defined) that an iterator points to using the `NAME_itr` struct's data member:
 
 ```c
 itr.data->key
