@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v1.0.0 ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v2.0.0 ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -179,7 +179,7 @@ API:
       #define HASH_FN <function name>
 
         The name of the existing function used to hash each key.
-        The function should have the signature uint64_t ( KEY_TY ) and return a 64-bit hash code.
+        The function should have the signature uint64_t ( KEY_TY key ) and return a 64-bit hash code.
         For best performance, the hash function should provide a high level of entropy across all bits.
         There are two default hash functions: vt_hash_integer for all integer types up to 64 bits in size, and
         vt_hash_string for NULL-terminated strings (i.e. char *).
@@ -190,7 +190,8 @@ API:
       #define CMPR_FN <function name>
 
         The name of the existing function used to compare two keys.
-        The function should have the signature bool ( KEY_TY, KEY_TY ) and return true if the two keys are equal.
+        The function should have the signature bool ( KEY_TY key_1, KEY_TY key_2 ) and return true if the two keys are
+        equal.
         There are two default comparison functions: vt_cmpr_integer for all integer types up to 64 bits in size, and
         vt_cmpr_string for NULL-terminated strings (i.e. char *).
         As with the default hash functions, in C11 or later the appropriate default comparison function is inferred if
@@ -205,27 +206,39 @@ API:
 
       #define KEY_DTOR_FN <function name>
 
-        The name of the existing destructor function, with the signature void ( KEY_TY ), called on a key when it is
+        The name of the existing destructor function, with the signature void ( KEY_TY key ), called on a key when it is
         erased from the table or replaced by a newly inserted key.
         The API functions that may call the key destructor are NAME_insert, NAME_erase, NAME_erase_itr, NAME_clear,
         and NAME_cleanup.
 
       #define VAL_DTOR_FN <function name>
 
-        The name of the existing destructor function, with the signature void ( VAL_TY ), called on a value when it is
-        erased from the table or replaced by a newly inserted value.
+        The name of the existing destructor function, with the signature void ( VAL_TY val ), called on a value when it
+        is erased from the table or replaced by a newly inserted value.
         The API functions that may call the value destructor are NAME_insert, NAME_erase, NAME_erase_itr, NAME_clear,
         and NAME_cleanup.
 
+      #define CTX_TY <type>
+
+        The type of the hash table type's ctx (context) member.
+        This member only exists if CTX_TY was defined.
+        It is intended to be used in conjunction with MALLOC_FN and FREE_FN (see below).
+
       #define MALLOC_FN <function name>
 
-        The name of the existing function, with the signature void *( size_t ), used to allocate memory.
-        The default is stdlib.h's malloc.
+        The name of the existing function used to allocate memory.
+        If CTX_TY was defined, the signature should be void *( size_t size, CTX_TY *ctx ), where size is the number of
+        bytes to allocate and ctx points to the table's ctx member.
+        Otherwise, the signature should be void *( size_t size ).
+        The default wraps stdlib.h's malloc.
 
       #define FREE_FN <function name>
 
-        The name of the existing function, with the signature void ( void * ), used to free memory.
-        The default is stdlib.h's free.
+        The name of the existing function used to free memory.
+        If CTX_TY was defined, the signature should be void ( void *ptr, size_t size, CTX_TY *ctx ), where ptr points to
+        the memory to free, size is the number of bytes that were allocated, and ctx points to the table's ctx member.
+        Otherwise, the signature should be void ( void *ptr, size_t size ).
+        The default wraps stdlib.h's free.
 
       #define HEADER_MODE
       #define IMPLEMENTATION_MODE
@@ -237,7 +250,7 @@ API:
         definitions such that one implementation can be shared across all translation units (as in a traditional header
         and source file pair).
         In that case, instantiate a template wherever it is needed by defining HEADER_MODE, along with only NAME,
-        KEY_TY, and (optionally) VAL_TY and header guards, and including the library, e.g.:
+        KEY_TY, and (optionally) VAL_TY, CTX_TY, and header guards, and including the library, e.g.:
 
           #ifndef INT_INT_MAP_H
           #define INT_INT_MAP_H
@@ -269,13 +282,19 @@ API:
     In C11 and later, the generic "vt_"-prefixed macros may be used to automatically select the correct version of the
     specified function based on the arguments.
 
-    void NAME_init( NAME *table ) // C11 generic macro: vt_init.
+    void NAME_init( NAME *table )
+    void NAME_init( NAME *table, CTX_TY ctx )
+    // C11 generic macro: vt_init.
 
       Initializes the table for use.
+      If CTX_TY was defined, ctx sets the table's ctx member.
 
-    bool NAME_init_clone( NAME *table, NAME *source ) // C11 generic macro: vt_init_clone.
+    bool NAME_init_clone( NAME *table, NAME *source )
+    bool NAME_init_clone( NAME *table, NAME *source, CTX_TY ctx )
+    // C11 generic macro: vt_init_clone.
 
       Initializes the table as a shallow copy of the specified source table.
+      If CTX_TY was defined, ctx sets the table's ctx member.
       Returns false in the case of memory allocation failure.
 
     size_t NAME_size( NAME *table ) // C11 generic macro: vt_size.
@@ -299,7 +318,7 @@ API:
     // C11 generic macro: vt_get_or_insert.
 
       Inserts the specified key (and value, if VAL_TY was defined) if it does not already exist in the table.
-      Returns an iterator to new key if it was inserted, or an iterator to the existing key, or an end iterator if
+      Returns an iterator to the new key if it was inserted, or an iterator to the existing key, or an end iterator if
       the key did not exist but the new key could not be inserted because of memory allocation failure.
       Determine whether the key was inserted by comparing the table's size before and after the call.
 
@@ -351,7 +370,8 @@ API:
 
   Iterators:
 
-    Access the key (and value, if VAL_TY was defined) that an iterator points to using the NAME_itr struct's data field:
+    Access the key (and value, if VAL_TY was defined) that an iterator points to using the NAME_itr struct's data
+    member:
 
       itr.data->key
       itr.data->val
@@ -362,29 +382,30 @@ API:
 
 Version history:
 
+  --/--/---- 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
+                    functions to receive the allocation size.
+                    Improved documentation.
+                    Added noinline attribute to NAME_rehash to reduce the size of the insert functions.
+                    Converted hash fragment and quadratic formula macros into inline functions.
+                    Removed redundant parameter from NAME_end_itr.
   12/12/2023 1.0.0: Initial release.
 
 License (MIT):
 
   Copyright (c) 2023 Jackson L. Allan
 
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+  documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+  persons to whom the Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
+  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+  Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
@@ -415,14 +436,20 @@ License (MIT):
 
 // Extracts a hash fragment from a uint64_t hash code.
 // We take the highest four bits so that keys that map (via modulo) to the same bucket have distinct hash fragments.
-#define VT_HASH_FRAG( hash ) ( ( (hash) >> 48 ) & VT_HASH_FRAG_MASK )
+static inline size_t vt_hash_frag( uint64_t hash )
+{
+  return ( hash >> 48 ) & VT_HASH_FRAG_MASK;
+}
 
 // Standard quadratic probing formula that guarantees that all buckets are visited when the bucket count is a power of
 // two (at least in theory, because the displacement limit could terminate the search early when the bucket count is
 // high).
-#define VT_QUADRATIC( displacement ) ( ( (displacement) * (displacement) + (displacement) ) / 2 )
+static inline size_t vt_quadratic( uint16_t displacement )
+{
+  return ( (size_t)displacement * displacement + displacement ) / 2;
+}
 
-#define VT_MIN_NONZERO_BUCKET_COUNT  8 // Must be a power of two.
+#define VT_MIN_NONZERO_BUCKET_COUNT 8 // Must be a power of two.
 
 // Function to find the left-most non-zero uint16_t in a uint64_t.
 // This function is used when we scan four buckets at a time while iterating and relies on compiler intrinsics wherever
@@ -483,9 +510,9 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
 // us to avoid NULL-pointer checks while iterating.
 // The placeholder array must also have excess elements to ensure that our iteration functions, which read four buckets
 // at a time, never read beyond the end of it.
-static const uint16_t vt_placeholder_metadata_buffer[ 4 ] = { 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF };
+static const uint16_t vt_placeholder_metadata_buffer[ 4 ] = { 0x01 /* Iteration stopper */, 0x00, 0x00, 0x00 };
 
-// Default hash and comparison functions:
+// Default hash and comparison functions.
 
 static inline uint64_t vt_hash_integer( uint64_t key )
 {
@@ -517,15 +544,27 @@ static inline bool vt_cmpr_string( char *key_1, char *key_2 )
   return strcmp( key_1, key_2 ) == 0;
 }
 
+// Default allocation and free functions.
+
+static inline void *vt_malloc( size_t size )
+{
+  return malloc( size );
+}
+
+static inline void vt_free( void *ptr, size_t size )
+{
+  free( ptr );
+}
+
 // The rest of the common header section pertains to the C11 generic macro API.
 // This interface is based on the extendible-_Generic mechanism documented in detail at
 // https://github.com/JacksonAllan/CC/blob/main/articles/Better_C_Generics_Part_1_The_Extendible_Generic.md.
 // In summary, instantiating a template also defines wrappers for the template's types and functions with names in the
-// pattern of vt_table_NNN and vt_init_NNN, where NNN is an automatically generated integer unique to the template
+// pattern of vt_table_NNNN and vt_init_NNNN, where NNNN is an automatically generated integer unique to the template
 // instance in the current translation unit.
 // These wrappers plug in to _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
 // slots for every existing template instance.
-#if __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
 
 // Octal counter that supports up to 511 hash table templates.
 #define VT_TEMPLATE_COUNT_D1 0 // Digit 1, i.e. least significant digit.
@@ -576,7 +615,14 @@ VT_CAT( VT_R3_, VT_TEMPLATE_COUNT_D3 )( ty, fn )                                
 
 // Actual generic API macros.
 
-#define vt_init( table ) _Generic( *( table ) VT_GENERIC_SLOTS( vt_table_, vt_init_ ) )( table )
+// vt_init must be handled as a special case because it could take one or two arguments, depending on whether CTX_TY
+// was defined.
+#define VT_ARG_3( _1, _2, _3, ... ) _3
+#define vt_init( ... ) VT_ARG_3( __VA_ARGS__, vt_init_with_ctx, vt_init_without_ctx, )( __VA_ARGS__ )
+#define vt_init_without_ctx( table ) _Generic( *( table ) VT_GENERIC_SLOTS( vt_table_, vt_init_ ) )( table )
+#define vt_init_with_ctx( table, ... ) _Generic( *( table ) \
+  VT_GENERIC_SLOTS( vt_table_, vt_init_ )                   \
+)( table, __VA_ARGS__ )                                     \
 
 #define vt_init_clone( table, ... ) _Generic( *( table ) \
   VT_GENERIC_SLOTS( vt_table_, vt_init_clone_ )          \
@@ -645,11 +691,14 @@ typedef struct
 {
   size_t key_count;
   size_t bucket_count;
+  VT_CAT( NAME, _bucket ) *buckets;
   uint16_t *metadata; // As described above, each metadatum consists of a 4-bit hash-code fragment (X), a 1-bit flag
                       // indicating whether the key in this bucket begins a chain associated with the bucket (Y), and
                       // an 11-bit value indicating the quadratic displacement of the next key in the chain (Z):
                       // XXXXYZZZZZZZZZZZ.
-  VT_CAT( NAME, _bucket ) *buckets;
+  #ifdef CTX_TY
+  CTX_TY ctx;
+  #endif
 } NAME;
 
 #endif
@@ -666,9 +715,20 @@ typedef struct
 
 #ifndef IMPLEMENTATION_MODE
 
-VT_API_FN_QUALIFIERS void VT_CAT( NAME, _init )( NAME * );
+VT_API_FN_QUALIFIERS void VT_CAT( NAME, _init )(
+  NAME *
+  #ifdef CTX_TY
+  , CTX_TY
+  #endif
+);
 
-VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )( NAME *, NAME * );
+VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
+  NAME *,
+  NAME *
+  #ifdef CTX_TY
+  , CTX_TY
+  #endif
+);
 
 VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _size )( NAME * );
 
@@ -718,9 +778,9 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *, VT_CAT( NAME,
 // This function must be inlined to ensure that the compiler optimizes away the NAME_fast_forward call if the returned
 // iterator is discarded.
 #ifdef __GNUC__
-__attribute__((always_inline)) static inline
+static inline __attribute__((always_inline))
 #elif defined( _MSC_VER )
-__forceinline
+static __forceinline
 #else
 static inline
 #endif
@@ -751,15 +811,15 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #endif
 
 #ifndef MALLOC_FN
-#define MALLOC_FN malloc
+#define MALLOC_FN vt_malloc
 #endif
 
 #ifndef FREE_FN
-#define FREE_FN free
+#define FREE_FN vt_free
 #endif
 
 #ifndef HASH_FN
-#if __STDC_VERSION__ >= 201112L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer )
 #else
 #error Hash function inference is only available in C11 and later. In C99, you need to define HASH_FN manually to \
@@ -768,7 +828,7 @@ vt_hash_integer, vt_hash_string, or your own custom function with the signature 
 #endif
 
 #ifndef CMPR_FN
-#if __STDC_VERSION__ >= 201112L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #define CMPR_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer )
 #else
 #error Comparison function inference is only available in C11 and later. In C99, you need to define CMPR_FN manually \
@@ -776,18 +836,58 @@ to vt_cmpr_integer, vt_cmpr_string, or your own custom function with the signatu
 #endif
 #endif
 
-VT_API_FN_QUALIFIERS void VT_CAT( NAME, _init )( NAME *table )
+VT_API_FN_QUALIFIERS void VT_CAT( NAME, _init )(
+  NAME *table
+  #ifdef CTX_TY
+  , CTX_TY ctx
+  #endif
+)
 {
   table->key_count = 0;
   table->bucket_count = 0;
-  table->metadata = (uint16_t *)vt_placeholder_metadata_buffer;
   table->buckets = NULL;
+  table->metadata = (uint16_t *)vt_placeholder_metadata_buffer;
+
+  #ifdef CTX_TY
+  table->ctx = ctx;
+  #endif
 }
 
-VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )( NAME *table, NAME *source )
+// For efficiency, especially in the case of small table, the buckets array and metadata share the same dynamic memory
+// allocation:
+//   +-----------------------------+-----+----------------+
+//   |           buckets           | pad |    metadata    |
+//   +-----------------------------+-----+----------------+
+// Like the placeholder metadata array, any allocated metadata array requires four excess elements to ensure that
+// iteration functions never read beyond the end of it.
+// This function returns the offset of the beginning of the metadata, i.e. the size of the buckets array plus the
+// (usually zero) padding.
+static inline size_t VT_CAT( NAME, _metadata_offset )( NAME *table )
+{
+  // Use sizeof, rather than alignof, for C99 compatibility.
+  return ( ( table->bucket_count * sizeof( VT_CAT( NAME, _bucket ) ) + sizeof( uint16_t ) - 1 ) / sizeof( uint16_t ) ) *
+    sizeof( uint16_t );
+}
+
+// Returns the total allocation size, including the buckets array, padding, and metadata.
+static inline size_t VT_CAT( NAME, _total_alloc_size )( NAME *table )
+{
+  return VT_CAT( NAME, _metadata_offset )( table ) + ( table->bucket_count + 4 ) * sizeof( uint16_t );
+}
+
+VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
+  NAME *table,
+  NAME *source
+  #ifdef CTX_TY
+  , CTX_TY ctx
+  #endif
+)
 {
   table->key_count = source->key_count;
   table->bucket_count = source->bucket_count;
+  #ifdef CTX_TY
+  table->ctx = ctx;
+  #endif
 
   if( source->bucket_count == 0 )
   {
@@ -796,18 +896,19 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )( NAME *table, NAME *source
     return true;
   }
 
-  table->metadata = (uint16_t *)MALLOC_FN( ( table->bucket_count + 4 ) * sizeof( uint16_t ) );
-  table->buckets = (VT_CAT( NAME, _bucket ) *)MALLOC_FN( table->bucket_count * sizeof( VT_CAT( NAME, _bucket ) ) );
+  void *allocation = MALLOC_FN(
+    VT_CAT( NAME, _total_alloc_size )( table )
+    #ifdef CTX_TY
+    , &table->ctx
+    #endif
+  );
 
-  if( !table->metadata || !table->buckets )
-  {
-    FREE_FN( table->metadata );
-    FREE_FN( table->buckets );
+  if( !allocation )
     return false;
-  }
 
-  memcpy( table->metadata, source->metadata, ( table->bucket_count + 4 ) * sizeof( uint16_t ) );
-  memcpy( table->buckets, source->buckets, table->bucket_count * sizeof( VT_CAT( NAME, _bucket ) ) );
+  table->buckets = (VT_CAT( NAME, _bucket ) *)allocation;
+  table->metadata = (uint16_t *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( table ) );
+  memcpy( allocation, source->buckets, VT_CAT( NAME, _total_alloc_size )( table ) );
 
   return true;
 }
@@ -863,7 +964,7 @@ static inline bool VT_CAT( NAME, _find_first_empty )(
 static inline size_t VT_CAT( NAME, _find_insert_location_in_chain )(
   NAME *table,
   size_t home_bucket,
-  size_t displacement_to_empty
+  uint16_t displacement_to_empty
 )
 {
   size_t candidate = home_bucket;
@@ -874,7 +975,7 @@ static inline size_t VT_CAT( NAME, _find_insert_location_in_chain )(
     if( displacement > displacement_to_empty )
       return candidate;
 
-    candidate = ( home_bucket + VT_QUADRATIC( displacement ) ) & ( table->bucket_count - 1 );
+    candidate = ( home_bucket + vt_quadratic( displacement ) ) & ( table->bucket_count - 1 );
   }
 }
 
@@ -895,7 +996,7 @@ static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
   size_t prev = home_bucket;
   while( true )
   {
-    size_t next = ( home_bucket + VT_QUADRATIC( table->metadata[ prev ] & VT_DISPLACEMENT_MASK ) ) & (
+    size_t next = ( home_bucket + vt_quadratic( table->metadata[ prev ] & VT_DISPLACEMENT_MASK ) ) & (
       table->bucket_count - 1 );
     if( next == bucket )
       break;
@@ -929,7 +1030,7 @@ static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
 
 // Returns an end iterator, i.e. any iterator for which .metadatum == .metadata_end.
 // This function just cleans up the library code in functions that return an end iterator as a failure indicator.
-static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _end_itr )( NAME *table )
+static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _end_itr )( void )
 {
   VT_CAT( NAME, _itr ) itr = { NULL, NULL, NULL, 0 };
   return itr;
@@ -954,32 +1055,32 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
   NAME *table,
   KEY_TY key,
   #ifdef VAL_TY
-  VAL_TY val,
+  VAL_TY *val,
   #endif
   bool unique,
   bool replace
 )
 {
   if( !table->bucket_count )
-    return VT_CAT( NAME, _end_itr )( table );
+    return VT_CAT( NAME, _end_itr )();
 
   uint64_t hash = HASH_FN( key );
   size_t home_bucket = hash & ( table->bucket_count - 1 );
-  uint16_t hashfrag = VT_HASH_FRAG( hash );
+  uint16_t hashfrag = vt_hash_frag( hash );
 
   // Case 1: The home bucket is empty or contains a key that doesn't belong there.
   if( !( table->metadata[ home_bucket ] & VT_IN_HOME_BUCKET_MASK ) )
   {
     if( table->key_count + 1 > table->bucket_count * MAX_LOAD )
-      return VT_CAT( NAME, _end_itr )( table );
+      return VT_CAT( NAME, _end_itr )();
 
     if( table->metadata[ home_bucket ] != VT_EMPTY )
       if( !VT_CAT( NAME, _evict )( table, home_bucket ) )
-        return VT_CAT( NAME, _end_itr )( table );
+        return VT_CAT( NAME, _end_itr )();
 
     table->buckets[ home_bucket ].key = key;
     #ifdef VAL_TY
-    table->buckets[ home_bucket ].val = val;
+    table->buckets[ home_bucket ].val = *val;
     #endif
     table->metadata[ home_bucket ] = hashfrag | VT_IN_HOME_BUCKET_MASK | VT_DISPLACEMENT_MASK;
 
@@ -1018,7 +1119,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
           #ifdef VAL_DTOR_FN
           VAL_DTOR_FN( table->buckets[ bucket ].val );
           #endif
-          table->buckets[ bucket ].val = val;
+          table->buckets[ bucket ].val = *val;
           #endif
         }
 
@@ -1035,25 +1136,25 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
       if( displacement == VT_DISPLACEMENT_MASK )
         break;
 
-      bucket = ( home_bucket + VT_QUADRATIC( displacement ) ) & ( table->bucket_count - 1 );
+      bucket = ( home_bucket + vt_quadratic( displacement ) ) & ( table->bucket_count - 1 );
     }
   }
 
   if( table->key_count + 1 > table->bucket_count * MAX_LOAD )
-    return VT_CAT( NAME, _end_itr )( table );
+    return VT_CAT( NAME, _end_itr )();
 
   // Find the earliest empty bucket, per quadratic probing.
   size_t empty;
   uint16_t displacement;
   if( !VT_CAT( NAME, _find_first_empty )( table, home_bucket, &empty, &displacement ) )
-    return VT_CAT( NAME, _end_itr )( table );
+    return VT_CAT( NAME, _end_itr )();
 
   size_t prev = VT_CAT( NAME, _find_insert_location_in_chain )( table, home_bucket, displacement );
 
   // Insert the new key (and value) in the empty bucket and link it to the chain.
   table->buckets[ empty ].key = key;
   #ifdef VAL_TY
-  table->buckets[ empty ].val = val;
+  table->buckets[ empty ].val = *val;
   #endif
   table->metadata[ empty ] = hashfrag | ( table->metadata[ prev ] & VT_DISPLACEMENT_MASK );
   table->metadata[ prev ] = ( table->metadata[ prev ] & ~VT_DISPLACEMENT_MASK ) | displacement;
@@ -1074,33 +1175,51 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
 // This function assumes that bucket_count is a power of two and large enough to accommodate all keys without violating
 // the maximum load factor.
 // Returns false in the case of allocation failure.
-static inline bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
+// As this function is called very rarely in _insert and _get_or_insert, ideally it should not be inlined into those
+// functions.
+// In testing, the no-inline approach showed a performance benefit when inserting existing keys (i.e. replacing).
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes" // Silence warning about noinline static inline.
+__attribute__((noinline)) static inline
+#elif defined( _MSC_VER )
+static __noinline
+#else
+static inline
+#endif
+bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
 {
   // The attempt to resize the bucket array and rehash the keys must occur inside a loop that incrementally doubles the
   // target bucket count because a failure could theoretically occur at any load factor due to the displacement limit.
   while( true )
   {
-    NAME new_table = {
+    NAME new_table =  {
       0,
       bucket_count,
-      (uint16_t *)MALLOC_FN( ( bucket_count + 4 ) * sizeof( uint16_t ) ),
-      (VT_CAT( NAME, _bucket ) *)MALLOC_FN( bucket_count * sizeof( VT_CAT( NAME, _bucket ) ) )
+      NULL,
+      NULL
+      #ifdef CTX_TY
+      , table->ctx
+      #endif
     };
 
-    if( !new_table.metadata || !new_table.buckets )
-    {
-      FREE_FN( new_table.metadata );
-      FREE_FN( new_table.buckets );
+    void *allocation = MALLOC_FN(
+      VT_CAT( NAME, _total_alloc_size )( &new_table )
+      #ifdef CTX_TY
+      , &new_table.ctx
+      #endif
+    );
+
+    if( !allocation )
       return false;
-    }
 
-    memset( new_table.metadata, 0x00, bucket_count * sizeof( uint16_t ) );
+    new_table.buckets = (VT_CAT( NAME, _bucket ) *)allocation;
+    new_table.metadata = (uint16_t *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( &new_table ) );
 
-    // Like the placeholder metadata array, any allocated metadata array requires excess elements to ensure that
-    // iteration functions never read beyond the end of it.
-    // The first excess metadatum, at least, must be non-zero in order to ensure that our iteration functions stop at
-    // the end of the actual metadata (producing an end iterator).
-    memset( new_table.metadata + bucket_count, 0xFF, 4 * sizeof( uint16_t ) );
+    memset( new_table.metadata, 0x00, ( bucket_count + 4 ) * sizeof( uint16_t ) );
+
+    // Iteration stopper at the end of the metadata array.
+    new_table.metadata[ bucket_count ] = 0x01;
 
     for( size_t bucket = 0; bucket < table->bucket_count; ++bucket )
       if( table->metadata[ bucket ] != VT_EMPTY )
@@ -1109,7 +1228,7 @@ static inline bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
           &new_table,
           table->buckets[ bucket ].key,
           #ifdef VAL_TY
-          table->buckets[ bucket ].val,
+          &table->buckets[ bucket ].val,
           #endif
           true,
           false
@@ -1117,23 +1236,35 @@ static inline bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
 
         if( VT_CAT( NAME, _is_end )( itr ) )
         {
-          FREE_FN( new_table.metadata );
-          FREE_FN( new_table.buckets );
+          FREE_FN(
+            new_table.buckets,
+            VT_CAT( NAME, _total_alloc_size )( &new_table )
+            #ifdef CTX_TY
+            , &new_table.ctx
+            #endif
+          );
+
           bucket_count *= 2;
           continue;
         }
       }
 
     if( table->bucket_count )
-    {
-      FREE_FN( table->metadata );
-      FREE_FN( table->buckets );
-    }
+      FREE_FN(
+        table->buckets,
+        VT_CAT( NAME, _total_alloc_size )( table )
+        #ifdef CTX_TY
+        , &table->ctx
+        #endif
+      );
 
     *table = new_table;
     return true;
   }
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 // Inserts a key, replacing the existing key if it already exists.
 // This function wraps insert_raw in a loop that handles growing and rehashing the table if a new key cannot be inserted
@@ -1153,7 +1284,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert )(
       table,
       key,
       #ifdef VAL_TY
-      val,
+      &val,
       #endif
       false,
       true
@@ -1183,7 +1314,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get_or_insert )(
       table,
       key,
       #ifdef VAL_TY
-      val,
+      &val,
       #endif
       false,
       false
@@ -1198,23 +1329,20 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get_or_insert )(
 }
 
 // Returns an iterator for the specified key, or an end iterator if the key does not exist.
-VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )(
-  NAME *table,
-  KEY_TY key
-)
+VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY_TY key )
 {
   if( !table->key_count )
-    return VT_CAT( NAME, _end_itr )( table );
+    return VT_CAT( NAME, _end_itr )();
 
   uint64_t hash = HASH_FN( key );
   size_t home_bucket = hash & ( table->bucket_count - 1 );
-  uint16_t hashfrag = VT_HASH_FRAG( hash );
 
   // If the home bucket is empty or contains a key that does not belong there, then our key does not exist.
   if( !( table->metadata[ home_bucket ] & VT_IN_HOME_BUCKET_MASK ) )
-    return VT_CAT( NAME, _end_itr )( table );
+    return VT_CAT( NAME, _end_itr )();
 
   // Traverse the chain of keys belonging to the home bucket.
+  uint16_t hashfrag = vt_hash_frag( hash );
   size_t bucket = home_bucket;
   while( true )
   {
@@ -1231,9 +1359,9 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )(
 
     uint16_t displacement = table->metadata[ bucket ] & VT_DISPLACEMENT_MASK;
     if( displacement == VT_DISPLACEMENT_MASK )
-      return VT_CAT( NAME, _end_itr )( table );
+      return VT_CAT( NAME, _end_itr )();
 
-    bucket = ( home_bucket + VT_QUADRATIC( displacement ) ) & ( table->bucket_count - 1 );
+    bucket = ( home_bucket + vt_quadratic( displacement ) ) & ( table->bucket_count - 1 );
   }
 }
 
@@ -1286,7 +1414,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *table, VT_CAT( 
     while( true )
     {
       uint16_t displacement = table->metadata[ bucket ] & VT_DISPLACEMENT_MASK;
-      size_t next = ( itr.home_bucket + VT_QUADRATIC( displacement ) ) & ( table->bucket_count - 1 );
+      size_t next = ( itr.home_bucket + vt_quadratic( displacement ) ) & ( table->bucket_count - 1 );
       if( next == itr_bucket )
       {
         table->metadata[ bucket ] |= VT_DISPLACEMENT_MASK;
@@ -1305,7 +1433,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *table, VT_CAT( 
   while( true )
   {
     size_t prev = bucket;
-    bucket = ( itr.home_bucket + VT_QUADRATIC( table->metadata[ bucket ] & VT_DISPLACEMENT_MASK ) ) & (
+    bucket = ( itr.home_bucket + vt_quadratic( table->metadata[ bucket ] & VT_DISPLACEMENT_MASK ) ) & (
       table->bucket_count - 1 );
 
     if( ( table->metadata[ bucket ] & VT_DISPLACEMENT_MASK ) == VT_DISPLACEMENT_MASK )
@@ -1406,8 +1534,14 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _shrink )( NAME *table )
 
   if( bucket_count == 0 )
   {
-    FREE_FN( table->metadata );
-    FREE_FN( table->buckets );
+    FREE_FN(
+      table->buckets,
+      VT_CAT( NAME, _total_alloc_size )( table )
+      #ifdef CTX_TY
+      , &table->ctx
+      #endif
+    );
+
     table->bucket_count = 0;
     table->metadata = (uint16_t *)vt_placeholder_metadata_buffer;
     return true;
@@ -1452,9 +1586,20 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _cleanup )( NAME *table )
   VT_CAT( NAME, _clear )( table );
   #endif
 
-  FREE_FN( table->metadata );
-  FREE_FN( table->buckets );
-  VT_CAT( NAME, _init )( table );
+  FREE_FN(
+    table->buckets,
+    VT_CAT( NAME, _total_alloc_size )( table )
+    #ifdef CTX_TY
+    , &table->ctx
+    #endif
+  );
+
+  VT_CAT( NAME, _init )(
+    table
+    #ifdef CTX_TY
+    , table->ctx
+    #endif
+  );
 }
 
 #endif
@@ -1463,19 +1608,44 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _cleanup )( NAME *table )
 /*                                Wrapper types and functions for the C11 generic API                                 */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
-#if __STDC_VERSION__ >= 201112L && !defined( IMPLEMENTATION_MODE ) && !defined( VT_NO_C11_GENERIC_API )
+#if defined(__STDC_VERSION__) &&       \
+    __STDC_VERSION__ >= 201112L &&     \
+    !defined( IMPLEMENTATION_MODE ) && \
+    !defined( VT_NO_C11_GENERIC_API )  \
 
 typedef NAME VT_CAT( vt_table_, VT_TEMPLATE_COUNT );
 typedef VT_CAT( NAME, _itr ) VT_CAT( vt_table_itr_, VT_TEMPLATE_COUNT );
 
-static inline void VT_CAT( vt_init_, VT_TEMPLATE_COUNT )( NAME *table )
+static inline void VT_CAT( vt_init_, VT_TEMPLATE_COUNT )(
+  NAME *table
+  #ifdef CTX_TY
+  , CTX_TY ctx
+  #endif
+)
 {
-  VT_CAT( NAME, _init )( table );
+  VT_CAT( NAME, _init )(
+    table
+    #ifdef CTX_TY
+    , ctx
+    #endif
+  );
 }
 
-static inline bool VT_CAT( vt_init_clone_, VT_TEMPLATE_COUNT )( NAME *table, NAME* source )
+static inline bool VT_CAT( vt_init_clone_, VT_TEMPLATE_COUNT )(
+  NAME *table,
+  NAME* source
+  #ifdef CTX_TY
+  , CTX_TY ctx
+  #endif
+)
 {
-  return VT_CAT( NAME, _init_clone )( table, source );
+  return VT_CAT( NAME, _init_clone )(
+    table,
+    source
+    #ifdef CTX_TY
+    , ctx
+    #endif
+  );
 }
 
 static inline size_t VT_CAT( vt_size_, VT_TEMPLATE_COUNT )( NAME *table )
@@ -1659,6 +1829,7 @@ C99 prefixed function API to circumvent this restriction.
 #undef MAX_LOAD
 #undef KEY_DTOR_FN
 #undef VAL_DTOR_FN
+#undef CTX_TY
 #undef MALLOC_FN
 #undef FREE_FN
 #undef HEADER_MODE

@@ -33,7 +33,7 @@ Otherwise, it acts as a set containing only keys.
 ```
 
 The name of the existing function used to hash each key.  
-The function should have the signature `uint64_t ( KEY_TY )` and return a 64-bit hash code.  
+The function should have the signature `uint64_t ( KEY_TY key )` and return a 64-bit hash code.  
 For best performance, the hash function should provide a high level of entropy across all bits.  
 There are two default hash functions: `vt_hash_integer` for all integer types up to 64 bits in size, and `vt_hash_string` for `NULL`-terminated strings (i.e. `char *`).  
 When `KEY_TY` is one of such types and the compiler is in C11 mode or later, `HASH_FN` may be left undefined, in which case the appropriate default function is inferred from `KEY_TY`.  
@@ -44,7 +44,7 @@ Otherwise, `HASH_FN` must be defined.
 ```
 
 The name of the existing function used to compare two keys.  
-The function should have the signature `bool ( KEY_TY, KEY_TY )` and return `true` if the two keys are equal.
+The function should have the signature `bool ( KEY_TY key_1, KEY_TY key_2 )` and return `true` if the two keys are equal.  
 There are two default comparison functions: `vt_cmpr_integer` for all integer types up to 64 bits in size, and `vt_cmpr_string` for `NULL`-terminated strings (i.e. `char *`).  
 As with the default hash functions, in C11 or later the appropriate default comparison function is inferred if `KEY_TY` is one of such types and `CMPR_FN` is left undefined.  
 Otherwise, `CMPR_FN` must be defined.
@@ -60,29 +60,41 @@ The default is `0.9`, i.e. 90%.
 #define KEY_DTOR_FN <function name>
 ```
 
-The name of the existing destructor function, with the signature `void ( KEY_TY )`, called on a key when it is erased from the table or replaced by a newly inserted key.  
+The name of the existing destructor function, with the signature `void ( KEY_TY key )`, called on a key when it is erased from the table or replaced by a newly inserted key.  
 The API functions that may call the key destructor are `NAME_insert`, `NAME_erase`, `NAME_erase_itr`, `NAME_clear`, and `NAME_cleanup`.
 
 ```c
 #define VAL_DTOR_FN <function name>
 ```
 
-The name of the existing destructor function, with the signature `void ( VAL_TY )`, called on a value when it is erased from the table or replaced by a newly inserted value.  
+The name of the existing destructor function, with the signature `void ( VAL_TY val )`, called on a value when it is erased from the table or replaced by a newly inserted value.  
 The API functions that may call the value destructor are `NAME_insert`, `NAME_erase`, `NAME_erase_itr`, `NAME_clear`, and `NAME_cleanup`.
+
+```c
+#define CTX_TY <type>
+```
+
+The type of the hash table type's `ctx` (context) member.  
+This member only exists if `CTX_TY` was defined.  
+It is intended to be used in conjunction with `MALLOC_FN` and `FREE_FN` (see below).
 
 ```c
 #define MALLOC_FN <function name>
 ```
 
-The name of the existing function, with the signature `void *( size_t )`, used to allocate memory.  
-The default is `stdlib.h`'s malloc.
+The name of the existing function used to allocate memory.  
+If `CTX_TY` was defined, the signature should be void `*( size_t size, CTX_TY *ctx )`, where size is the number of bytes to allocate and ctx points to the table's ctx member.  
+Otherwise, the signature should be `void *( size_t size )`.  
+The default wraps `stdlib.h`'s malloc.
 
 ```c
 #define FREE_FN <function name>
 ```
 
-The name of the existing function, with the signature `void ( void * )`, used to free memory.  
-The default is `stdlib.h`'s free.
+The name of the existing function used to free memory.  
+If `CTX_TY` was defined, the signature should be `void ( void *ptr, size_t size, CTX_TY *ctx )`, where ptr points to the memory to free, size is the number of bytes that were allocated, and ctx points to the table's ctx member.  
+Otherwise, the signature should be `void ( void *ptr, size_t size )`.  
+The default wraps `stdlib.h`'s free.
 
 ```c
 #define HEADER_MODE
@@ -91,7 +103,7 @@ The default is `stdlib.h`'s free.
 
 By default, all hash table functions are defined as `static inline` functions, the intent being that a given hash table template should be instantiated once per translation unit; for best performance, this is the recommended way to use the library.  
 However, it is also possible separate the struct definitions and function declarations from the function definitions such that one implementation can be shared across all translation units (as in a traditional header and source file pair).  
-In that case, instantiate a template wherever it is needed by defining `HEADER_MODE`, along with only `NAME`, `KEY_TY`, and (optionally) `VAL_TY` and header guards, and including the library, e.g.:
+In that case, instantiate a template wherever it is needed by defining `HEADER_MODE`, along with only `NAME`, `KEY_TY`, and (optionally) `VAL_TY`, `CTX_TY`, and header guards, and including the library, e.g.:
 
 ```c
 #ifndef INT_INT_MAP_H
@@ -127,16 +139,22 @@ The functions associated with a hash table type are all prefixed with the name t
 In C11 and later, the generic `vt_`-prefixed macros may be used to automatically select the correct version of the specified function based on the arguments.
 
 ```c
-void NAME_init( NAME *table ) // C11 generic macro: vt_init.
+void NAME_init( NAME *table )
+void NAME_init( NAME *table, CTX_TY ctx )
+// C11 generic macro: vt_init.
 ```
 
-Initializes the table for use.
+Initializes the table for use.  
+If `CTX_TY` was defined, `ctx` sets the table's `ctx` member.
 
 ```c
-bool NAME_init_clone( NAME *table, NAME *source ) // C11 generic macro: vt_init_clone.
+bool NAME_init_clone( NAME *table, NAME *source )
+bool NAME_init_clone( NAME *table, NAME *source, CTX_TY ctx )
+// C11 generic macro: vt_init_clone.
 ```
 
 Initializes the table as a shallow copy of the specified source table.  
+If `CTX_TY` was defined, `ctx` sets the table's `ctx` member.  
 Returns `false` in the case of memory allocation failure.
 
 ```c

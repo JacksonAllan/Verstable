@@ -1,6 +1,6 @@
 /*
 
-Verstable - unit_tests.c - v1.0.0
+Verstable - tests/unit_tests.c - v2.0.0
 
 This file tests Verstable sets and maps.
 It aims to cover the full functionality, via the C11 generic API, and to check corner cases.
@@ -73,12 +73,38 @@ void *unreliable_tracking_malloc( size_t size )
   return ptr;
 }
 
-void tracking_free( void *ptr )
+void tracking_free( void *ptr, size_t size )
 {
   if( ptr )
     --oustanding_allocs;
 
   free( ptr );
+}
+
+// Custom malloc and free functions that make use of the ctx member.
+
+typedef struct
+{
+  size_t id; // Used to check that the ctx member is correctly set and conveyed during rehashing.
+  size_t alloc_size; // Used to check that the size that Verstable passes into the free function is the same as the size
+                     // that was used for allocation.
+} context;
+
+void *unreliable_tracking_malloc_with_ctx( size_t size, context *ctx )
+{
+  void *ptr = unreliable_tracking_malloc( size );
+  if( !ptr )
+    return NULL;
+
+  ctx->alloc_size = size;
+
+  return ptr;
+}
+
+void tracking_free_with_ctx( void *ptr, size_t size, context *ctx )
+{
+  ALWAYS_ASSERT( ctx->alloc_size == size );
+  tracking_free( ptr, size );
 }
 
 // Destructor function and array to track for which keys it has been called.
@@ -99,12 +125,16 @@ void check_dtors_arr()
   }
 }
 
+// Max load factor.
+// Set to 1.0 to test correct handling of rehashing due to displacement limit violation.
+#define GLOBAL_MAX_LOAD 0.95
+
 // Instantiate hash table templates.
 
 #define NAME      integer_map
 #define KEY_TY    uint64_t
 #define VAL_TY    uint64_t
-#define MAX_LOAD  0.95
+#define MAX_LOAD  GLOBAL_MAX_LOAD
 #define MALLOC_FN unreliable_tracking_malloc
 #define FREE_FN   tracking_free
 #include "../verstable.h"
@@ -114,7 +144,7 @@ void check_dtors_arr()
 #define VAL_TY      uint64_t
 #define KEY_DTOR_FN dtor
 #define VAL_DTOR_FN dtor
-#define MAX_LOAD    0.95
+#define MAX_LOAD    GLOBAL_MAX_LOAD
 #define MALLOC_FN   unreliable_tracking_malloc
 #define FREE_FN     tracking_free
 #include "../verstable.h"
@@ -122,14 +152,14 @@ void check_dtors_arr()
 #define NAME      string_map
 #define KEY_TY    char *
 #define VAL_TY    char *
-#define MAX_LOAD  0.95
+#define MAX_LOAD  GLOBAL_MAX_LOAD
 #define MALLOC_FN unreliable_tracking_malloc
 #define FREE_FN   tracking_free
 #include "../verstable.h"
 
 #define NAME      integer_set
 #define KEY_TY    uint64_t
-#define MAX_LOAD  0.95
+#define MAX_LOAD  GLOBAL_MAX_LOAD
 #define MALLOC_FN unreliable_tracking_malloc
 #define FREE_FN   tracking_free
 #include "../verstable.h"
@@ -137,20 +167,34 @@ void check_dtors_arr()
 #define NAME        integer_dtors_set
 #define KEY_TY      uint64_t
 #define KEY_DTOR_FN dtor
-#define MAX_LOAD    0.95
+#define MAX_LOAD    GLOBAL_MAX_LOAD
 #define MALLOC_FN   unreliable_tracking_malloc
 #define FREE_FN     tracking_free
 #include "../verstable.h"
 
 #define NAME      string_set
 #define KEY_TY    char *
-#define MAX_LOAD  0.95
+#define MAX_LOAD  GLOBAL_MAX_LOAD
 #define MALLOC_FN unreliable_tracking_malloc
 #define FREE_FN   tracking_free
 #include "../verstable.h"
 
-// Redefine max load factor as it is reused below.
-#define MAX_LOAD 0.95
+#define NAME      integer_map_with_ctx
+#define KEY_TY    uint64_t
+#define VAL_TY    uint64_t
+#define CTX_TY    context
+#define MAX_LOAD  GLOBAL_MAX_LOAD
+#define MALLOC_FN unreliable_tracking_malloc_with_ctx
+#define FREE_FN   tracking_free_with_ctx
+#include "../verstable.h"
+
+#define NAME      integer_set_with_ctx
+#define KEY_TY    uint64_t
+#define CTX_TY    context
+#define MAX_LOAD  GLOBAL_MAX_LOAD
+#define MALLOC_FN unreliable_tracking_malloc_with_ctx
+#define FREE_FN   tracking_free_with_ctx
+#include "../verstable.h"
 
 // Unit tests.
 
@@ -165,7 +209,7 @@ void test_map_reserve( void )
 
   // Reserve up from placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_map, 30 ) );
-  ALWAYS_ASSERT( 30 <= vt_bucket_count( &our_map ) * MAX_LOAD );
+  ALWAYS_ASSERT( 30 <= vt_bucket_count( &our_map ) * GLOBAL_MAX_LOAD );
 
   // Reserve same capacity.
   size_t bucket_count = vt_bucket_count( &our_map );
@@ -174,7 +218,7 @@ void test_map_reserve( void )
 
   // Reserve up from non-placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_map, 60 ) );
-  ALWAYS_ASSERT( 60 <= vt_bucket_count( &our_map ) * MAX_LOAD );
+  ALWAYS_ASSERT( 60 <= vt_bucket_count( &our_map ) * GLOBAL_MAX_LOAD );
 
   // Reserve lower capacity.
   bucket_count = vt_bucket_count( &our_map );
@@ -228,7 +272,7 @@ void test_map_shrink( void )
   // Test shrink down.
   UNTIL_SUCCESS( vt_reserve( &our_map, 500 ) );
   ALWAYS_ASSERT( vt_size( &our_map ) == 30 );
-  ALWAYS_ASSERT( 500 <= vt_bucket_count( &our_map ) * MAX_LOAD );
+  ALWAYS_ASSERT( 500 <= vt_bucket_count( &our_map ) * GLOBAL_MAX_LOAD );
   UNTIL_SUCCESS( vt_shrink( &our_map ) );
   ALWAYS_ASSERT( vt_size( &our_map ) == 30 );
   ALWAYS_ASSERT( vt_bucket_count( &our_map ) == bucket_count );
@@ -644,6 +688,43 @@ void test_map_strings( void )
   vt_cleanup( &our_map );
 }
 
+void test_map_with_ctx( void )
+{
+  integer_map_with_ctx our_maps[ 10 ];
+  integer_map_with_ctx our_map_clones[ 10 ];
+
+  for( size_t i = 0; i < 10; ++i )
+  {
+    // Initializing the ctx member on init.
+    context ctx = { i, 0 };
+    vt_init( &our_maps[ i ], ctx );
+    ALWAYS_ASSERT( our_maps[ i ].ctx.id == i );
+
+    // Conveying ctx during rehashes.
+
+    for( size_t j = 0; j < 100; ++j )
+      UNTIL_SUCCESS( !vt_is_end( vt_insert( &our_maps[ i ], j, 0 ) ) );
+
+    for( size_t j = 0; j < 50; ++j )
+      vt_erase( &our_maps[ i ], j );
+
+    UNTIL_SUCCESS( vt_shrink( &our_maps[ i ] ) );
+    
+    ALWAYS_ASSERT( our_maps[ i ].ctx.id == i );
+
+    // Initializing the ctx member on init_clone.
+
+    UNTIL_SUCCESS( vt_init_clone( &our_map_clones[ i ], &our_maps[ i ], our_maps[ i ].ctx ) );
+    ALWAYS_ASSERT( our_map_clones[ i ].ctx.id == i );
+
+    for( size_t j = 50; j < 100; ++j )
+      UNTIL_SUCCESS( !vt_is_end( vt_insert( &our_map_clones[ i ], j, 0 ) ) );
+
+    vt_cleanup( &our_maps[ i ] );
+    vt_cleanup( &our_map_clones[ i ] );
+  }
+}
+
 // Set tests.
 
 void test_set_reserve( void )
@@ -657,7 +738,7 @@ void test_set_reserve( void )
 
   // Reserve up from placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_set, 30 ) );
-  ALWAYS_ASSERT( 30 <= vt_bucket_count( &our_set ) * MAX_LOAD );
+  ALWAYS_ASSERT( 30 <= vt_bucket_count( &our_set ) * GLOBAL_MAX_LOAD );
 
   // Reserve same capacity.
   size_t bucket_count = vt_bucket_count( &our_set );
@@ -666,7 +747,7 @@ void test_set_reserve( void )
 
   // Reserve up from non-placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_set, 60 ) );
-  ALWAYS_ASSERT( 60 <= vt_bucket_count( &our_set ) * MAX_LOAD );
+  ALWAYS_ASSERT( 60 <= vt_bucket_count( &our_set ) * GLOBAL_MAX_LOAD );
 
   // Reserve lower capacity.
   bucket_count = vt_bucket_count( &our_set );
@@ -720,7 +801,7 @@ void test_set_shrink( void )
   // Test shrink down.
   UNTIL_SUCCESS( vt_reserve( &our_set, 500 ) );
   ALWAYS_ASSERT( vt_size( &our_set ) == 30 );
-  ALWAYS_ASSERT( 500 <= vt_bucket_count( &our_set ) * MAX_LOAD );
+  ALWAYS_ASSERT( 500 <= vt_bucket_count( &our_set ) * GLOBAL_MAX_LOAD );
   UNTIL_SUCCESS( vt_shrink( &our_set ) );
   ALWAYS_ASSERT( vt_size( &our_set ) == 30 );
   ALWAYS_ASSERT( vt_bucket_count( &our_set ) == bucket_count );
@@ -1131,6 +1212,43 @@ void test_set_strings( void )
   vt_cleanup( &our_set );
 }
 
+void test_set_with_ctx( void )
+{
+  integer_set_with_ctx our_sets[ 10 ];
+  integer_set_with_ctx our_set_clones[ 10 ];
+
+  for( size_t i = 0; i < 10; ++i )
+  {
+    // Initializing the ctx member on init.
+    context ctx = { i, 0 };
+    vt_init( &our_sets[ i ], ctx );
+    ALWAYS_ASSERT( our_sets[ i ].ctx.id == i );
+
+    // Conveying ctx during rehashes.
+
+    for( size_t j = 0; j < 100; ++j )
+      UNTIL_SUCCESS( !vt_is_end( vt_insert( &our_sets[ i ], j ) ) );
+
+    for( size_t j = 0; j < 50; ++j )
+      vt_erase( &our_sets[ i ], j );
+
+    UNTIL_SUCCESS( vt_shrink( &our_sets[ i ] ) );
+    
+    ALWAYS_ASSERT( our_sets[ i ].ctx.id == i );
+
+    // Initializing the ctx member on init_clone.
+
+    UNTIL_SUCCESS( vt_init_clone( &our_set_clones[ i ], &our_sets[ i ], our_sets[ i ].ctx ) );
+    ALWAYS_ASSERT( our_set_clones[ i ].ctx.id == i );
+
+    for( size_t j = 50; j < 100; ++j )
+      UNTIL_SUCCESS( !vt_is_end( vt_insert( &our_set_clones[ i ], j ) ) );
+
+    vt_cleanup( &our_sets[ i ] );
+    vt_cleanup( &our_set_clones[ i ] );
+  }
+}
+
 int main( void )
 {
   srand( (unsigned int)time( NULL ) );
@@ -1154,6 +1272,7 @@ int main( void )
     test_map_iteration();
     test_map_dtors();
     test_map_strings();
+    test_map_with_ctx();
 
     // Set.
     test_set_reserve();
@@ -1169,6 +1288,7 @@ int main( void )
     test_set_iteration();
     test_set_dtors();
     test_set_strings();
+    test_set_with_ctx();
   }
 
   ALWAYS_ASSERT( oustanding_allocs == 0 );
