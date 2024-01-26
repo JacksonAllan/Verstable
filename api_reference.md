@@ -255,7 +255,7 @@ Erases all keys (and values, if `VAL_TY` was defined) in the table, frees all me
 
 ## Iterators
 
-Access the key (and value, if `VAL_TY` was defined) that an iterator points to using the `NAME_itr` struct's data member:
+Access the key (and value, if `VAL_TY` was defined) that an iterator points to using the `NAME_itr` struct's `data` member:
 
 ```c
 itr.data->key
