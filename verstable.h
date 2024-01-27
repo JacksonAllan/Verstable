@@ -382,7 +382,7 @@ API:
 
 Version history:
 
-  --/--/---- 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
+  --/--/2024 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
                     functions to receive the allocation size.
                     Improved documentation.
                     Added noinline attribute to NAME_rehash to reduce the size of the insert functions.
@@ -392,7 +392,7 @@ Version history:
 
 License (MIT):
 
-  Copyright (c) 2023 Jackson L. Allan
+  Copyright (c) 2023-2024 Jackson L. Allan
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -425,6 +425,15 @@ License (MIT):
 // Two-way concatenation macro.
 #define VT_CAT_( a, b ) a##b
 #define VT_CAT( a, b ) VT_CAT_( a, b )
+
+// Branch optimization macros.
+#ifdef __GNUC__
+#define VT_LIKELY( expression )   (bool)__builtin_expect( (bool)( expression ), true )
+#define VT_UNLIKELY( expression ) (bool)__builtin_expect( (bool)( expression ), false )
+#else
+#define VT_LIKELY( expression )   ( expression )
+#define VT_UNLIKELY( expression ) ( expression )
+#endif
 
 // Masks for manipulating and extracting data from a bucket's uint16_t metadatum.
 #define VT_EMPTY               0x0000
@@ -1331,7 +1340,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get_or_insert )(
 // Returns an iterator for the specified key, or an end iterator if the key does not exist.
 VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY_TY key )
 {
-  if( !table->key_count )
+  if( VT_UNLIKELY( !table->key_count ) )
     return VT_CAT( NAME, _end_itr )();
 
   uint64_t hash = HASH_FN( key );
@@ -1346,7 +1355,10 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY
   size_t bucket = home_bucket;
   while( true )
   {
-    if( ( table->metadata[ bucket ] & VT_HASH_FRAG_MASK ) == hashfrag && CMPR_FN( table->buckets[ bucket ].key, key ) )
+    if(
+      ( table->metadata[ bucket ] & VT_HASH_FRAG_MASK ) == hashfrag &&
+      VT_LIKELY( CMPR_FN( table->buckets[ bucket ].key, key ) )
+    )
     {
       VT_CAT( NAME, _itr ) itr = {
         table->buckets + bucket,
