@@ -446,7 +446,7 @@ License (MIT):
 
 // Extracts a hash fragment from a uint64_t hash code.
 // We take the highest four bits so that keys that map (via modulo) to the same bucket have distinct hash fragments.
-static inline size_t vt_hash_frag( uint64_t hash )
+static inline uint16_t vt_hash_frag( uint64_t hash )
 {
   return ( hash >> 48 ) & VT_HASH_FRAG_MASK;
 }
@@ -561,6 +561,7 @@ static inline void *vt_malloc( size_t size )
 
 static inline void vt_free( void *ptr, size_t size )
 {
+  (void)size;
   free( ptr );
 }
 
@@ -834,7 +835,15 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 
 #ifndef HASH_FN
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#ifdef _MSC_VER // In MSVC, the compound literal in the _Generic triggers a warning about unused local variables at /W4.
+#define HASH_FN                                                               \
+_Pragma( "warning( push )" )                                                  \
+_Pragma( "warning( disable: 4189 )" )                                         \
+_Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer ) \
+_Pragma( "warning( pop )" )
+#else
 #define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer )
+#endif
 #else
 #error Hash function inference is only available in C11 and later. In C99, you need to define HASH_FN manually to \
 vt_hash_integer, vt_hash_string, or your own custom function with the signature uint64_t ( KEY_TY ).
@@ -843,7 +852,15 @@ vt_hash_integer, vt_hash_string, or your own custom function with the signature 
 
 #ifndef CMPR_FN
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#ifdef _MSC_VER
+#define CMPR_FN                                                               \
+_Pragma( "warning( push )" )                                                  \
+_Pragma( "warning( disable: 4189 )" )                                         \
+_Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer ) \
+_Pragma( "warning( pop )" )
+#else
 #define CMPR_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer )
+#endif
 #else
 #error Comparison function inference is only available in C11 and later. In C99, you need to define CMPR_FN manually \
 to vt_cmpr_integer, vt_cmpr_string, or your own custom function with the signature bool ( KEY_TY, KEY_TY ).
@@ -1202,7 +1219,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
 #pragma GCC diagnostic ignored "-Wattributes" // Silence warning about combining noinline with static inline.
 __attribute__((noinline)) static inline
 #elif defined( _MSC_VER )
-static __noinline
+__declspec(noinline) static inline
 #else
 static inline
 #endif

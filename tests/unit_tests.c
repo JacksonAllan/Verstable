@@ -70,6 +70,8 @@ void *unreliable_tracking_malloc( size_t size )
 
 void tracking_free( void *ptr, size_t size )
 {
+  (void)size;
+
   if( ptr )
     --oustanding_allocs;
 
@@ -111,7 +113,7 @@ void dtor( uint64_t key_or_val )
   dtor_called[ key_or_val ] = true;
 }
 
-void check_dtors_arr()
+void check_dtors_arr( void )
 {
   for( size_t i = 0; i < 100; ++i )
   {
@@ -460,7 +462,7 @@ void test_map_erase_itr( void )
       ALWAYS_ASSERT( vt_is_end( vt_get( &our_map, i ) ) );
     else
     {
-      integer_map_itr itr = vt_get( &our_map, i );
+      itr = vt_get( &our_map, i );
       ALWAYS_ASSERT( !vt_is_end( itr ) && itr.data->val == i + 1 );
     }
   }
@@ -989,7 +991,7 @@ void test_set_erase_itr( void )
       ALWAYS_ASSERT( vt_is_end( vt_get( &our_set, i ) ) );
     else
     {
-      integer_set_itr itr = vt_get( &our_set, i );
+      itr = vt_get( &our_set, i );
       ALWAYS_ASSERT( !vt_is_end( itr ) && itr.data->key == i );
     }
   }
