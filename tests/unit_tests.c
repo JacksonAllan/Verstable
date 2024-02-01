@@ -200,7 +200,7 @@ void test_map_reserve( void )
 
   // Reserve zero with placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_map, 0 ) );
-  ALWAYS_ASSERT( our_map.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_map.metadata == &vt_empty_placeholder_metadatum );
 
   // Reserve up from placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_map, 30 ) );
@@ -250,7 +250,7 @@ void test_map_shrink( void )
   UNTIL_SUCCESS( vt_shrink( &our_map ) );
   ALWAYS_ASSERT( vt_size( &our_map ) == 0 );
   ALWAYS_ASSERT( vt_bucket_count( &our_map ) == 0 );
-  ALWAYS_ASSERT( our_map.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_map.metadata == &vt_empty_placeholder_metadatum );
 
   // Test shrink same size.
   UNTIL_SUCCESS( vt_reserve( &our_map, 30 ) );
@@ -506,7 +506,7 @@ void test_map_cleanup( void )
 
   // Empty.
   vt_cleanup( &our_map );
-  ALWAYS_ASSERT( our_map.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_map.metadata == &vt_empty_placeholder_metadatum );
 
   // Non-empty.
   for( uint64_t i = 0; i < 100; ++i )
@@ -515,7 +515,7 @@ void test_map_cleanup( void )
   ALWAYS_ASSERT( vt_size( &our_map ) == 100 );
   vt_cleanup( &our_map );
   ALWAYS_ASSERT( vt_size( &our_map ) == 0 );
-  ALWAYS_ASSERT( our_map.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_map.metadata == &vt_empty_placeholder_metadatum );
 
   // Test use.
   for( uint64_t i = 0; i < 100; ++i )
@@ -537,7 +537,7 @@ void test_map_init_clone( void )
   // Test init_clone placeholder.
   integer_map empty_map;
   UNTIL_SUCCESS( vt_init_clone( &empty_map, &src_map ) );
-  ALWAYS_ASSERT( empty_map.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( empty_map.metadata == &vt_empty_placeholder_metadatum );
 
   // Test init_clone non-placeholder.
   integer_map our_map;
@@ -729,7 +729,7 @@ void test_set_reserve( void )
 
   // Reserve zero with placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_set, 0 ) );
-  ALWAYS_ASSERT( our_set.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_set.metadata == &vt_empty_placeholder_metadatum );
 
   // Reserve up from placeholder.
   UNTIL_SUCCESS( vt_reserve( &our_set, 30 ) );
@@ -779,7 +779,7 @@ void test_set_shrink( void )
   UNTIL_SUCCESS( vt_shrink( &our_set ) );
   ALWAYS_ASSERT( vt_size( &our_set ) == 0 );
   ALWAYS_ASSERT( vt_bucket_count( &our_set ) == 0 );
-  ALWAYS_ASSERT( our_set.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_set.metadata == &vt_empty_placeholder_metadatum );
 
   // Test shrink same size.
   UNTIL_SUCCESS( vt_reserve( &our_set, 30 ) );
@@ -1035,7 +1035,7 @@ void test_set_cleanup( void )
 
   // Empty.
   vt_cleanup( &our_set );
-  ALWAYS_ASSERT( our_set.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_set.metadata == &vt_empty_placeholder_metadatum );
 
   // Non-empty.
   for( uint64_t i = 0; i < 100; ++i )
@@ -1044,7 +1044,7 @@ void test_set_cleanup( void )
   ALWAYS_ASSERT( vt_size( &our_set ) == 100 );
   vt_cleanup( &our_set );
   ALWAYS_ASSERT( vt_size( &our_set ) == 0 );
-  ALWAYS_ASSERT( our_set.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( our_set.metadata == &vt_empty_placeholder_metadatum );
 
   // Test use.
   for( uint64_t i = 0; i < 100; ++i )
@@ -1066,7 +1066,7 @@ void test_set_init_clone( void )
   // Test init_clone placeholder.
   integer_set empty_set;
   UNTIL_SUCCESS( vt_init_clone( &empty_set, &src_set ) );
-  ALWAYS_ASSERT( empty_set.metadata == vt_placeholder_metadata_buffer );
+  ALWAYS_ASSERT( empty_set.metadata == &vt_empty_placeholder_metadatum );
 
   // Test init_clone non-placeholder.
   integer_set our_set;
