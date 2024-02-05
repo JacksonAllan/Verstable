@@ -382,12 +382,13 @@ API:
 
 Version history:
 
-  --/--/2024 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
+  06/02/2024 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
                     functions to receive the allocation size.
                     Improved documentation.
                     Introduced various optimizations, including storing the buckets-array size mask instead of the
                     bucket count, eliminating empty-table checks, combining the buckets memory and metadata memory into
                     one allocation, and adding branch prediction macros.
+                    Fixed a bug that caused a key to be used after destruction during erasure.
   12/12/2023 1.0.0: Initial release.
 
 License (MIT):
@@ -446,7 +447,7 @@ License (MIT):
 
 // Extracts a hash fragment from a uint64_t hash code.
 // We take the highest four bits so that keys that map (via modulo) to the same bucket have distinct hash fragments.
-static inline uint16_t vt_hash_frag( uint64_t hash )
+static inline uint16_t vt_hashfrag( uint64_t hash )
 {
   return ( hash >> 48 ) & VT_HASH_FRAG_MASK;
 }
@@ -562,6 +563,19 @@ static inline void *vt_malloc( size_t size )
 static inline void vt_free( void *ptr, size_t size )
 {
   (void)size;
+  free( ptr );
+}
+
+static inline void *vt_malloc_with_ctx( size_t size, void *ctx )
+{
+  (void)ctx;
+  return malloc( size );
+}
+
+static inline void vt_free_with_ctx( void *ptr, size_t size, void *ctx )
+{
+  (void)size;
+  (void)ctx;
   free( ptr );
 }
 
@@ -826,11 +840,19 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #endif
 
 #ifndef MALLOC_FN
+#ifdef CTX_TY
+#define MALLOC_FN vt_malloc_with_ctx
+#else
 #define MALLOC_FN vt_malloc
+#endif
 #endif
 
 #ifndef FREE_FN
+#ifdef CTX_TY
+#define FREE_FN vt_free_with_ctx
+#else
 #define FREE_FN vt_free
+#endif
 #endif
 
 #ifndef HASH_FN
@@ -1030,7 +1052,9 @@ static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
   size_t prev = home_bucket;
   while( true )
   {
-    size_t next = ( home_bucket + vt_quadratic( table->metadata[ prev ] & VT_DISPLACEMENT_MASK ) ) & table->buckets_mask;
+    size_t next = ( home_bucket + vt_quadratic( table->metadata[ prev ] & VT_DISPLACEMENT_MASK ) ) &
+      table->buckets_mask;
+
     if( next == bucket )
       break;
 
@@ -1095,7 +1119,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
 )
 {
   uint64_t hash = HASH_FN( key );
-  uint16_t hashfrag = vt_hash_frag( hash );
+  uint16_t hashfrag = vt_hashfrag( hash );
   size_t home_bucket = hash & table->buckets_mask;
 
   // Case 1: The home bucket is empty or contains a key that doesn't belong there.
@@ -1389,7 +1413,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY
     return VT_CAT( NAME, _end_itr )();
 
   // Traverse the chain of keys belonging to the home bucket.
-  uint16_t hashfrag = vt_hash_frag( hash );
+  uint16_t hashfrag = vt_hashfrag( hash );
   size_t bucket = home_bucket;
   while( true )
   {
@@ -1429,9 +1453,8 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *table, VT_CAT( 
   --table->key_count;
   size_t itr_bucket = itr.metadatum - table->metadata;
 
-  #ifdef KEY_DTOR_FN
-  KEY_DTOR_FN( table->buckets[ itr_bucket ].key );
-  #endif
+  // For now, we only call the value's destructor because the key may need to be hashed below to determine the home
+  // bucket.
   #ifdef VAL_DTOR_FN
   VAL_DTOR_FN( table->buckets[ itr_bucket ].val );
   #endif
@@ -1442,6 +1465,9 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *table, VT_CAT( 
     ( table->metadata[ itr_bucket ] & VT_DISPLACEMENT_MASK ) == VT_DISPLACEMENT_MASK
   )
   {
+    #ifdef KEY_DTOR_FN
+    KEY_DTOR_FN( table->buckets[ itr_bucket ].key );
+    #endif
     table->metadata[ itr_bucket ] = VT_EMPTY;
     return true;
   }
@@ -1454,6 +1480,11 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *table, VT_CAT( 
     else
       itr.home_bucket = HASH_FN( table->buckets[ itr_bucket ].key ) & table->buckets_mask;
   }
+
+  // The key can now be safely destructed for cases 2 and 3.
+  #ifdef KEY_DTOR_FN
+  KEY_DTOR_FN( table->buckets[ itr_bucket ].key );
+  #endif
 
   // Case 2: The key is the last in a multi-key chain.
   // Traverse the chain from the beginning and find the penultimate key.
