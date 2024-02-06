@@ -507,7 +507,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   if( !half )
     result += 2;
   
-  uint32_t quarter;
+  uint16_t quarter;
   memcpy( &quarter, (char *)&val + result * 2, sizeof( uint16_t ) );
   if( !quarter )
     result += 1;
