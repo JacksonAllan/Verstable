@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v2.0.0 ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v-.-.- ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -382,6 +382,7 @@ API:
 
 Version history:
 
+  --/--/---- -.-.-: ...
   06/02/2024 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
                     functions to receive the allocation size.
                     Improved documentation.
@@ -1557,11 +1558,11 @@ static inline void VT_CAT( NAME, _fast_forward )( VT_CAT( NAME, _itr ) *itr )
 {
   while( true )
   {
-    uint64_t metadatum;
-    memcpy( &metadatum, itr->metadatum, 8 );
-    if( metadatum )
+    uint64_t metadata;
+    memcpy( &metadata, itr->metadatum, 8 );
+    if( metadata )
     {
-      int offset = vt_first_nonzero_uint16( metadatum );
+      int offset = vt_first_nonzero_uint16( metadata );
       itr->data += offset;
       itr->metadatum += offset;
       itr->home_bucket = SIZE_MAX;
