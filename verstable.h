@@ -17,7 +17,7 @@ Verstable is a C99-compatible, open-addressing hash table using quadratic probin
   (optionally) the value.
 
 One way to conceptualize this scheme is as a chained hash table in which overflowing keys are stored not in separate
-memory allocations but in otherwise unused buckets. In this regard, it shares similarities with Malte Skarupke’s Bytell
+memory allocations but in otherwise unused buckets. In this regard, it shares similarities with Malte Skarupke's Bytell
 hash table (https://www.youtube.com/watch?v=M2fKMP47slQ) and traditional "coalesced hashing".
 
 Advantages of this scheme include:
@@ -509,7 +509,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
     result += 2;
   
   uint16_t quarter;
-  memcpy( &quarter, (char *)&val + result * 2, sizeof( uint16_t ) );
+  memcpy( &quarter, (char *)&val + result * sizeof( uint16_t ), sizeof( uint16_t ) );
   if( !quarter )
     result += 1;
   
@@ -1211,9 +1211,10 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
   )
     return VT_CAT( NAME, _end_itr )();
 
+  // Insert the new key (and value) in the empty bucket and link it to the chain.
+
   size_t prev = VT_CAT( NAME, _find_insert_location_in_chain )( table, home_bucket, displacement );
 
-  // Insert the new key (and value) in the empty bucket and link it to the chain.
   table->buckets[ empty ].key = key;
   #ifdef VAL_TY
   table->buckets[ empty ].val = *val;
@@ -1559,7 +1560,7 @@ static inline void VT_CAT( NAME, _fast_forward )( VT_CAT( NAME, _itr ) *itr )
   while( true )
   {
     uint64_t metadata;
-    memcpy( &metadata, itr->metadatum, 8 );
+    memcpy( &metadata, itr->metadatum, sizeof( uint64_t ) );
     if( metadata )
     {
       int offset = vt_first_nonzero_uint16( metadata );
