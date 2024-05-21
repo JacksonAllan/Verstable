@@ -471,7 +471,7 @@ static inline size_t vt_quadratic( uint16_t displacement )
 static inline int vt_first_nonzero_uint16( uint64_t val )
 {
   const uint16_t endian_checker = 0x0001;
-  if( *(char *)&endian_checker ) // Little-endian (the compiler will optimize away the check at -O1 and above).
+  if( *(const char *)&endian_checker ) // Little-endian (the compiler will optimize away the check at -O1 and above).
     return __builtin_ctzll( val ) / 16;
   
   return __builtin_clzll( val ) / 16;
@@ -519,7 +519,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
 
 // When the bucket count is zero, setting the metadata pointer to point to a VT_EMPTY placeholder, rather than NULL,
 // allows us to avoid checking for a zero bucket count during insertion and lookup.
-static const uint16_t vt_empty_placeholder_metadatum = VT_EMPTY;
+static uint16_t vt_empty_placeholder_metadatum = VT_EMPTY;
 
 // Default hash and comparison functions.
 
