@@ -550,7 +550,7 @@ static inline bool vt_cmpr_integer( uint64_t key_1, uint64_t key_2 )
 
 static inline bool vt_cmpr_string( char *key_1, char *key_2 )
 {
-  return strcmp( key_1, key_2 ) == 0;
+  return strcmp( key_1, key_2 ) == 0; //NOLINT
 }
 
 // Default allocation and free functions.
@@ -1048,7 +1048,7 @@ static inline size_t VT_CAT( NAME, _find_insert_location_in_chain )(
 static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
 {
   // Find the previous key in chain.
-  size_t home_bucket = HASH_FN( table->buckets[ bucket ].key ) & table->buckets_mask;
+  size_t home_bucket = HASH_FN( table->buckets[ bucket ].key ) & table->buckets_mask; // NOLINT
   size_t prev = home_bucket;
   while( true )
   {
@@ -1132,7 +1132,8 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
       // Load-factor check.
       VT_UNLIKELY( table->key_count + 1 > VT_CAT( NAME, _bucket_count )( table ) * MAX_LOAD ) ||
       // Vacate the home bucket if it contains a key.
-      ( table->metadata[ home_bucket ] != VT_EMPTY && VT_UNLIKELY( !VT_CAT( NAME, _evict )( table, home_bucket ) ) )
+      ( table->metadata[ home_bucket ] != VT_EMPTY && VT_UNLIKELY( !VT_CAT( NAME, _evict )( table, home_bucket ) ) ) ||
+      VT_UNLIKELY( table->buckets == NULL)
     )
       return VT_CAT( NAME, _end_itr )();
 
@@ -1163,7 +1164,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
     {
       if(
         ( table->metadata[ bucket ] & VT_HASH_FRAG_MASK ) == hashfrag &&
-        VT_LIKELY( CMPR_FN( table->buckets[ bucket ].key, key ) )
+        VT_LIKELY( CMPR_FN( table->buckets[ bucket ].key, key ) ) // NOLINT
       )
       {
         if( replace )
@@ -1251,6 +1252,7 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
 {
   // The attempt to resize the bucket array and rehash the keys must occur inside a loop that incrementally doubles the
   // target bucket count because a failure could theoretically occur at any load factor due to the displacement limit.
+new_buckets:
   while( true )
   {
     NAME new_table =  {
@@ -1305,7 +1307,7 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
           );
 
           bucket_count *= 2;
-          continue;
+          goto new_buckets;
         }
       }
 
