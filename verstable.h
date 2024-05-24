@@ -961,7 +961,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
     return false;
 
   table->buckets = (VT_CAT( NAME, _bucket ) *)allocation;
-  table->metadata = (uint16_t *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( table ) );
+  table->metadata = (void *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( table ) );
   memcpy( allocation, source->buckets, VT_CAT( NAME, _total_alloc_size )( table ) );
 
   return true;
@@ -1274,7 +1274,7 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
       return false;
 
     new_table.buckets = (VT_CAT( NAME, _bucket ) *)allocation;
-    new_table.metadata = (uint16_t *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( &new_table ) );
+    new_table.metadata = (void *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( &new_table ) );
 
     memset( new_table.metadata, 0x00, ( bucket_count + 4 ) * sizeof( uint16_t ) );
 
