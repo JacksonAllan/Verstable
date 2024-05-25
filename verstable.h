@@ -1299,19 +1299,23 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
         );
 
         if( VT_UNLIKELY( VT_CAT( NAME, _is_end )( itr ) ) )
-        {
-          FREE_FN(
-            new_table.buckets,
-            VT_CAT( NAME, _total_alloc_size )( &new_table )
-            #ifdef CTX_TY
-            , &new_table.ctx
-            #endif
-          );
-
-          bucket_count *= 2;
-          continue;
-        }
+          break;
       }
+
+    // If a key could not be reinserted due to the displacement limit, double the bucket count and retry.
+    if( new_table.key_count < table->key_count )
+    {
+      FREE_FN(
+        new_table.buckets,
+        VT_CAT( NAME, _total_alloc_size )( &new_table )
+        #ifdef CTX_TY
+        , &new_table.ctx
+        #endif
+      );
+
+      bucket_count *= 2;
+      continue;
+    }
 
     if( table->buckets_mask )
       FREE_FN(
@@ -1452,7 +1456,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY
 // This return value is necessary because at the iterator location, the erasure could result in an empty bucket, a
 // bucket containing a moved key already visited during the iteration, or a bucket containing a moved key not yet
 // visited.
-VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw ) ( NAME *table, VT_CAT( NAME, _itr ) itr )
+VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _erase_itr_raw )( NAME *table, VT_CAT( NAME, _itr ) itr )
 {
   --table->key_count;
   size_t itr_bucket = itr.metadatum - table->metadata;
