@@ -1,6 +1,6 @@
 /*
 
-Verstable - tests/unit_tests.c - v2.0.0
+Verstable - tests/unit_tests.c - v2.1.0
 
 This file tests Verstable sets and maps.
 It aims to cover the full functionality, via the C11 generic API, and to check corner cases.

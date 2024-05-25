@@ -1,6 +1,6 @@
 <picture><img src="./header.svg" alt="Verstable"></picture>
 
-**Verstable** is a versatile generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as [Abseil/Swiss](https://abseil.io/about/design/swisstables), [Boost](https://bannalia.blogspot.com/2022/11/inside-boostunorderedflatmap.html), and [Bytell](https://probablydance.com/2018/05/28/a-new-fast-hash-table-in-response-to-googles-new-fast-hash-table/) to C.
+Verstable is a versatile generic hash table intended to bring the speed and memory efficiency of state-of-the-art C++ hash tables such as [Abseil/Swiss](https://abseil.io/about/design/swisstables), [Boost](https://bannalia.blogspot.com/2022/11/inside-boostunorderedflatmap.html), and [Bytell](https://probablydance.com/2018/05/28/a-new-fast-hash-table-in-response-to-googles-new-fast-hash-table/) to C.
 
 Its features include:
 
@@ -21,15 +21,15 @@ API:
 Performance:
 - High speed mostly impervious to load factor.
 - Only two bytes of overhead per bucket.
-- Tombstones-free deletion.
+- Tombstone-free deletion.
 
 </td>
 </tr>
 </table>
 
-Benchmarks comparing **Verstable** to the aforementioned hash tables and several [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/)-based hash tables are available [here](https://verstablebenchmarks.netlify.app/).
+Benchmarks comparing Verstable to the aforementioned hash tables and several [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/)-based hash tables are available [here](https://verstablebenchmarks.netlify.app/).
 
-**Verstable** is distributed under the MIT license.
+Verstable is distributed under the MIT license.
 
 Try it online [here](https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1AB9U8lJL6yAngGVG6AMKpaAVxYMJATlIOAMngMmABy7gBGmMQSXKQADqgKhLYMzm4e3nEJSQIBQaEsEVFcMZaY1slCBEzEBKnunlw%2BpeUCldUEuSHhkdEWVTV16Y197Z35hdEAlBaorsTI7BwApABMAMyByG5YANRLa44KBPioAHQI%2B9hLGgCC1zcA9A87AJIMR4Y2TDZGO0w7SgIOwImBYsQMINO91WaywNCCO2CNwAstgdoECMZAdD1nDApgdgBpbAATWMABUSejBDiNgwtq5dvtHAgCARYgoQE9iEwAO6nYCEBCuMKuJTzWSMAinNAsB4AKSYyAA1goBDdaAYGA8AGqRD5hegPFhMQIPABu%2Bqqhsw50u0NuT1e7yqgjw30CwD%2BOxNsWBoPB31ttLxCKRqOpmIxxl9Icw8IJxLJlMjcYTOx1Nz8FKpGNpm22BOZrPZnO5fIFQpFYsiaEEUplqDlipVaoYGq1uqtTBtxtN2stxAN9Dtayut3uGJ9/YgO3NqDw6B2k2hAHYAEL3HY7J1CTDSh03bfRwE7WbELH7/ab27b81RhiEWerABs58vQJXaxvd1vO%2Bebzij8XrKpgACeChQn%2B/DELOU54HsawACI7Bo17oohjg7FwaHfnsKybgRCErn%2BSwblu26Rh%2BxiEMQ6IEHR%2BwofeNHvJEBDPisb5zB%2BpAYV%2BP6UeiVCzixeAKMYDhwQxy7LhRQmYKoT7YXJeFOgA8q4QKoFQPqgiQYFQUeeyrkhh7bk62A8okvygRBRnbjBcGCBhTGoehCHMthuHrq5BFuWscl/nemKREwSicdxF6AnxxHXuZ/47AASvuxB4Jg5qejsdmQRRTmRq5yHuXhnkHN56GrIR65xaR5HBVRgI0TJtGIcxmLAPukXvjF/HxfVeAiTsYBgGJElSfRdGTEFxlCbEaWCINqwrKsACsS5LbFDGnOg3xMAAtJcdmqYJJlmX%2BTrKPNILoCAKkrDskg7CtOyrjsAAcCVOi8II8jYAgOTsTnyQ1%2B5NXRLVuSxNBDhx%2BFRR%2Bx3A8No2SQw6DSZNfUzRNrVzpiQSqLDLUkcZJOzVdi0rMtKxrfhKybcQ227QdY5HQJFEXVdmA3Q9T07Pdb0qauCUsVsmCGK4sRdTxp7sxO53PMiTCxEZFHRtGvpnjxsbfhRYmPrDr7vprcu/sZX1sTUWU5X8aNzmIriYLl0EkM5QKlShPmFVhOEVf5RHTduZEncegisZivpgzjTHAyFrFAdLF6%2BrFsX4b5XCI/1g0o%2BNxOB0JOyKcpGcCYlmnabpbAsAZANkWdZsWc8Vnhdb4EKLbS7mg7TsA/l8G417pU%2B4PacBfncdhRFcPG8rqemxzzwpQx6WZbZbcd/bbg93lrsFR7xW%2BUP5V4ZVlU1cZwfA%2BrYeRy1ENFSxHWG1xM%2BxHPWNCQNs7I1GY1oxjskyYFzmhiESsdKJLVWjdKBdNSDgOPFtHaVQWbYDsnA%2Bqn9EHM0uF3Wg4DTZB1MgvHYl0MTc1ulwEA90VggECpIEAz0VogBfC9EAgs3ogC8J9ACP0PT/R3rBK%2BYcNbKyjvfNqxhoZHETjGZWmdsY/xon/dGOMCGUXEXjYwBMiYySAUA7cICFoQHAZAmm0CzGwPAbRJmyDDrgXQdjBBjMkH7RwWIYGajOZkJ5vQxhzD%2Ba0Pepw7CVDWEfXlsZUW9AJZS2ntrOR88iG3A4NMWgnAVq8E8BwLQpBUCcCwmqOYCx8JrB4KQAgmgUnTAQOLLAUQIDTGVAwrwpwXwrS4CtF8q4vCSEkDTDQb1Vz6E4JITJlTcmcF4JyDQ5TKnTDgLAJAikyhaRIOQSg1RgAKGUIYTAtAhAIFQLyLJZTZSxDoHwhgOygj7MOcc8ZZy6A9GQMALgVNSCPPoMQYIrBFi8E%2BZEcuByjlZJycs5ANxiBbMmb4VQZRKj4CybwfgggRBiHYFIGQghFAqHUNknQegtQmDMPoPAYROSQGmKgWIf13gwtQIONKWAKUNNIMQVwbo2DklQC4Fl0xCnzAxX0RF1y9nAvudwXgDFMCLDKbyHksROA8FSeksZ%2BKJkcGwHC5Aqy6KqDei%2BPaL5HrAGQMgbCKxTj3QgI4PiuBCAkBKVwSYUq5nVNqT0VlTTJAaFOGsSQb1JBrBWBoFaK1VySC8FwNYwyOCjNIKC3geSOBTJADMip%2BLJgqo4CsNVOTk2uszdMQciQ7CSCAA%3D%3D).
 
@@ -271,7 +271,7 @@ Full API documentation is available [here](api_reference.md).
 
 ### How does it work?
 
-**Verstable** is an open-addressing hash table using quadratic probing and the following additions:
+Verstable is an open-addressing hash table using quadratic probing and the following additions:
 
 - All keys that hash (i.e. "belong") to the same bucket (their "home bucket") are linked together by an 11-bit integer specifying the quadratic displacement, relative to that bucket, of the next key in the chain.
 
@@ -297,8 +297,8 @@ The generic macro API available in C11 is based on the extendible-`_Generic` mec
 
 ### How is it tested?
 
-**Verstable** has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on **Verstable** sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
+Verstable has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on Verstable sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
 
 ### Why the name?
 
-The name is a contraction of "versatile table". **Verstable** handles various conditions that strain other hash table schemes—such as large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance loss. In other words, it is designed to be a good default choice of hash table for most use cases.
+The name is a contraction of "versatile table". Verstable handles various conditions that strain other hash table schemes—such as large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance loss. In other words, it is designed to be a good default choice of hash table for most use cases.

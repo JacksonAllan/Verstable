@@ -1,6 +1,6 @@
 /*
 
-Verstable - tests/tests_against_stl.cpp - v2.0.0
+Verstable - tests/tests_against_stl.cpp - v2.1.0
 
 This file tests Verstable sets and maps against equivalent C++'s unordered_set and unordered_map.
 Primarily, it checks that a Verstable hash table and its equivalent STL container finish in the same state after a

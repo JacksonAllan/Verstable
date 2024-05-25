@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v-.-.- ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v2.1.0 ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -382,7 +382,7 @@ API:
 
 Version history:
 
-  --/--/---- -.-.-: ...
+  17/03/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
   06/02/2024 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
                     functions to receive the allocation size.
                     Improved documentation.
@@ -524,13 +524,14 @@ static const uint16_t vt_empty_placeholder_metadatum = VT_EMPTY;
 
 // Default hash and comparison functions.
 
+// Fast-hash, as described by https://jonkagstrom.com/bit-mixer-construction and
+// https://code.google.com/archive/p/fast-hash.
+// In testing, this hash function provided slightly better performance than the Murmur3 mixer.
 static inline uint64_t vt_hash_integer( uint64_t key )
 {
-  key ^= key >> 33;
-  key *= 0xff51afd7ed558ccdull;
-  key ^= key >> 33;
-  key *= 0xc4ceb9fe1a85ec53ull;
-  key ^= key >> 33;
+  key ^= key >> 23;
+  key *= 0x2127599bf4325c37ull;
+  key ^= key >> 47;
   return key;
 }
 
@@ -988,7 +989,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _is_end )( VT_CAT( NAME, _itr ) itr )
 // Finds the earliest empty bucket in which a key belonging to home_bucket can be placed, assuming that home_bucket
 // is already occupied.
 // The reason to begin the search at home_bucket, rather than the end of the existing chain, is that keys deleted from
-// other chains might have freed buckets that could fall in this chain before the final key.
+// other chains might have freed up buckets that could fall in this chain before the final key.
 // Returns true if an empty bucket within the range of the displacement limit was found, in which case the final two
 // pointer arguments contain the index of the empty bucket and its quadratic displacement from home_bucket.
 static inline bool VT_CAT( NAME, _find_first_empty )(
@@ -1039,13 +1040,14 @@ static inline size_t VT_CAT( NAME, _find_insert_location_in_chain )(
 // Frees up a bucket occupied by a key not belonging there so that a new key belonging there can be placed there as the
 // beginning of a new chain.
 // This requires:
-// * Finding the previous key in the chain to which the occupying belongs by rehashing it and then traversing the chain.
+// * Finding the previous key in the chain to which the occupying key belongs by rehashing it and then traversing the
+//   chain.
 // * Disconnecting the key from the chain.
 // * Finding the appropriate empty bucket to which to move the key.
 // * Moving the key (and value) data to the empty bucket.
 // * Re-linking the key to the chain.
-// Returns true if the eviction succeeded, or false if no empty bucket to which to evict the occupying key can be found
-// within the displacement limit.
+// Returns true if the eviction succeeded, or false if no empty bucket to which to evict the occupying key could be
+// found within the displacement limit.
 static inline bool VT_CAT( NAME, _evict )( NAME *table, size_t bucket )
 {
   // Find the previous key in chain.
@@ -1104,7 +1106,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _end_itr )( void )
 //   home bucket, and then linked to the chain in a manner that maintains its quadratic order.
 // The unique argument tells the function whether to skip searching for the key before inserting it (on rehashing, this
 // step is unnecessary).
-// The replace argument tells the function whether to replace an exiting key.
+// The replace argument tells the function whether to replace an existing key.
 // If replace is true, the function returns an iterator to the inserted key, or an end iterator if the key was not
 // inserted because of the maximum load factor or displacement limit constraints.
 // If replace is false, then the return value is as described above, except that if the key already exists, the function
@@ -1444,7 +1446,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY
 // Erases the key pointed to by the specified iterator.
 // The erasure always occurs at the end of the chain to which the key belongs.
 // If the key to be erased is not the last in the chain, it is swapped with the last so that erasure occurs at the end.
-// This helps keeps a chain's keys close to their home bucket for the sake of cache locality.
+// This helps keep a chain's keys close to their home bucket for the sake of cache locality.
 // Returns true if, in the case of iteration from first to end, NAME_next should now be called on the iterator to find
 // the next key.
 // This return value is necessary because at the iterator location, the erasure could result in an empty bucket, a
