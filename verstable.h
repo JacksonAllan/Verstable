@@ -382,7 +382,9 @@ API:
 
 Version history:
 
-  17/03/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
+  27/05/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
+                    Fixed a bug that could theoretically cause a crash on rehash (triggerable in testing using
+                    NAME_shrink with a maximum load factor significantly above 1.0).
   06/02/2024 2.0.0: Improved custom allocator support by introducing the CTX_TY option and allowing user-supplied free
                     functions to receive the allocation size.
                     Improved documentation.
