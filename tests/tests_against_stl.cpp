@@ -76,6 +76,8 @@ void *unreliable_tracking_malloc( size_t size )
 
 void tracking_free( void *ptr, size_t size )
 {
+  (void)size;
+
   if( ptr )
     oustanding_allocs.erase( ptr );
 

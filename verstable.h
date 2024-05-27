@@ -472,7 +472,7 @@ static inline size_t vt_quadratic( uint16_t displacement )
 static inline int vt_first_nonzero_uint16( uint64_t val )
 {
   const uint16_t endian_checker = 0x0001;
-  if( *(char *)&endian_checker ) // Little-endian (the compiler will optimize away the check at -O1 and above).
+  if( *(const char *)&endian_checker ) // Little-endian (the compiler will optimize away the check at -O1 and above).
     return __builtin_ctzll( val ) / 16;
   
   return __builtin_clzll( val ) / 16;
@@ -489,7 +489,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   unsigned long result;
 
   const uint16_t endian_checker = 0x0001;
-  if( *(char *)&endian_checker )
+  if( *(const char *)&endian_checker )
     _BitScanForward64( &result, val );
   else
     _BitScanReverse64( &result, val );
@@ -1303,7 +1303,7 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
       }
 
     // If a key could not be reinserted due to the displacement limit, double the bucket count and retry.
-    if( new_table.key_count < table->key_count )
+    if( VT_UNLIKELY( new_table.key_count < table->key_count ) )
     {
       FREE_FN(
         new_table.buckets,
