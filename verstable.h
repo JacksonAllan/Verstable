@@ -390,7 +390,7 @@ API:
 
 Version history:
 
-  --/--/---- 2.1.1: Fixed a bug affecting iteration on big-endian platforms under MSVC.
+  18/06/2024 2.1.1: Fixed a bug affecting iteration on big-endian platforms under MSVC.
   27/05/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
                     Fixed a bug that could theoretically cause a crash on rehash (triggerable in testing using
                     NAME_shrink with a maximum load factor significantly higher than 1.0).
