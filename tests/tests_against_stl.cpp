@@ -1,6 +1,6 @@
 /*
 
-Verstable - tests/tests_against_stl.cpp - v2.1.0
+Verstable v2.1.1 - tests/tests_against_stl.cpp
 
 This file tests Verstable sets and maps against equivalent C++'s unordered_set and unordered_map.
 Primarily, it checks that a Verstable hash table and its equivalent STL container finish in the same state after a
@@ -32,8 +32,8 @@ License (MIT):
 #include <unordered_set>
 
 // Assert macro that is not disabled by NDEBUG.
-#define ALWAYS_ASSERT( xp )                                                                               \
-( (xp) ? (void)0 : ( fprintf( stderr, "Assertion failed at line %d: %s\n", __LINE__, #xp ), exit( 0 ) ) ) \
+#define ALWAYS_ASSERT( xp )                                                                                     \
+( (xp) ? (void)0 : ( std::cerr << "Assertion failed at line " << __LINE__ << ": " << #xp << '\n', exit( 0 ) ) ) \
 
 // Macros to control the number of random operations to perform in each container test and the number of tests to
 // perform on each container.

@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v2.1.0 ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v2.1.1 ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -67,12 +67,16 @@ Usage example:
   |   {                                                     |   int_set_init( &our_set );                              |
   |     int_set_itr itr = vt_insert( &our_set, i );         |                                                          |
   |     if( vt_is_end( itr ) )                              |   // Inserting keys.                                     |
-  |       exit( 1 ); // Out of memory.                      |   for( int i = 0; i < 10; ++i )                          |
-  |   }                                                     |   {                                                      |
-  |                                                         |     int_set_itr itr =                                    |
-  |   // Erasing keys.                                      |       int_set_insert( &our_set, i );                     |
-  |   for( int i = 0; i < 10; i += 3 )                      |     if( int_set_is_end( itr ) )                          |
-  |   vt_erase( &our_set, i );                              |       exit( 1 ); // Out of memory.                       |
+  |     {                                                   |   for( int i = 0; i < 10; ++i )                          |
+  |       // Out of memory, so abort.                       |   {                                                      |
+  |       vt_cleanup( &our_set );                           |     int_set_itr itr =                                    |
+  |       return 1;                                         |       int_set_insert( &our_set, i );                     |
+  |     }                                                   |     if( int_set_is_end( itr ) )                          |
+  |   }                                                     |     {                                                    |
+  |                                                         |       // Out of memory, so abort.                        |
+  |   // Erasing keys.                                      |       int_set_cleanup( &our_set );                       |
+  |   for( int i = 0; i < 10; i += 3 )                      |       return 1;                                          |
+  |     vt_erase( &our_set, i );                            |     }                                                    |
   |                                                         |   }                                                      |
   |   // Retrieving keys.                                   |                                                          |
   |   for( int i = 0; i < 10; ++i )                         |   // Erasing keys.                                       |
@@ -90,13 +94,13 @@ Usage example:
   |     itr = vt_next( itr )                                |                                                          |
   |   )                                                     |   // Iteration.                                          |
   |     printf( "%d ", itr.data->key );                     |   for(                                                   |
-  |   // Printed: 4 5 2 8 1 7                               |     int_set_itr itr =                                    |
+  |   // Printed: 2 4 7 1 5 8                               |     int_set_itr itr =                                    |
   |                                                         |       int_set_first( &our_set );                         |
   |   vt_cleanup( &our_set );                               |     !int_set_is_end( itr );                              |
   |                                                         |     itr = int_set_next( itr )                            |
   |   // Map.                                               |   )                                                      |
   |                                                         |     printf( "%d ", itr.data->key );                      |
-  |   int_int_map our_map;                                  |   // Printed: 4 5 2 8 1 7                                |
+  |   int_int_map our_map;                                  |   // Printed: 2 4 7 1 5 8                                |
   |   vt_init( &our_map );                                  |                                                          |
   |                                                         |   int_set_cleanup( &our_set );                           |
   |   // Inserting keys and values.                         |                                                          |
@@ -105,13 +109,17 @@ Usage example:
   |     int_int_map_itr itr =                               |   int_int_map our_map;                                   |
   |       vt_insert( &our_map, i, i + 1 );                  |   int_int_map_init( &our_map );                          |
   |     if( vt_is_end( itr ) )                              |                                                          |
-  |       exit( 1 ); // Out of memory.                      |   // Inserting keys and values.                          |
-  |   }                                                     |   for( int i = 0; i < 10; ++i )                          |
-  |                                                         |   {                                                      |
-  |   // Erasing keys and values.                           |     int_int_map_itr itr =                                |
-  |   for( int i = 0; i < 10; i += 3 )                      |       int_int_map_insert( &our_map, i, i + 1 );          |
-  |     vt_erase( &our_map, i );                            |     if( int_int_map_is_end( itr ) )                      |
-  |                                                         |       exit( 1 ); // Out of memory.                       |
+  |     {                                                   |   // Inserting keys and values.                          |
+  |       // Out of memory, so abort.                       |   for( int i = 0; i < 10; ++i )                          |
+  |       vt_cleanup( &our_map );                           |   {                                                      |
+  |       return 1;                                         |     int_int_map_itr itr =                                |
+  |     }                                                   |       int_int_map_insert( &our_map, i, i + 1 );          |
+  |   }                                                     |     if( int_int_map_is_end( itr ) )                      |
+  |                                                         |     {                                                    |
+  |   // Erasing keys and values.                           |       // Out of memory, so abort.                        |
+  |   for( int i = 0; i < 10; i += 3 )                      |       int_int_map_cleanup( &our_map );                   |
+  |     vt_erase( &our_map, i );                            |       return 1;                                          |
+  |                                                         |     }                                                    |
   |   // Retrieving keys and values.                        |   }                                                      |
   |   for( int i = 0; i < 10; ++i )                         |                                                          |
   |   {                                                     |   // Erasing keys and values.                            |
@@ -136,7 +144,7 @@ Usage example:
   |       itr.data->key,                                    |   for(                                                   |
   |       itr.data->val                                     |     int_int_map_itr itr =                                |
   |     );                                                  |       int_int_map_first( &our_map );                     |
-  |   // Printed: 4:5 5:6 2:3 8:9 1:2 7:8                   |     !int_int_map_is_end( itr );                          |
+  |   // Printed: 2:3 4:5 7:8 1:2 5:6 8:9                   |     !int_int_map_is_end( itr );                          |
   |                                                         |     itr = int_int_map_next( itr )                        |
   |   vt_cleanup( &our_map );                               |   )                                                      |
   | }                                                       |     printf(                                              |
@@ -144,7 +152,7 @@ Usage example:
   |                                                         |       itr.data->key,                                     |
   |                                                         |       itr.data->val                                      |
   |                                                         |     );                                                   |
-  |                                                         |   // Printed: 4:5 5:6 2:3 8:9 1:2 7:8                    |
+  |                                                         |   // Printed: 2:3 4:5 7:8 1:2 5:6 8:9                    |
   |                                                         |                                                          |
   |                                                         |   int_int_map_cleanup( &our_map );                       |
   |                                                         | }                                                        |
@@ -382,6 +390,7 @@ API:
 
 Version history:
 
+  --/--/---- 2.1.1: Fixed a bug affecting iteration on big-endian platforms under MSVC.
   27/05/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
                     Fixed a bug that could theoretically cause a crash on rehash (triggerable in testing using
                     NAME_shrink with a maximum load factor significantly higher than 1.0).
@@ -494,7 +503,10 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   if( *(const char *)&endian_checker )
     _BitScanForward64( &result, val );
   else
+  {
     _BitScanReverse64( &result, val );
+    result = 63 - result;
+  }
 
   return result / 16;
 }

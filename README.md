@@ -27,11 +27,13 @@ Performance:
 </tr>
 </table>
 
-Benchmarks comparing Verstable to the aforementioned hash tables and several [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/)-based hash tables are available [here](https://verstablebenchmarks.netlify.app/).
+Extensive benchmarks comparing Verstable to a range of other C and C++ hash tables, including [Robin Hood](https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/) tables and SIMD-accelerated tables, are available [here](https://jacksonallan.github.io/c_cpp_hash_tables_benchmark/).
 
 Verstable is distributed under the MIT license.
 
-Try it online [here](https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1AB9U8lJL6yAngGVG6AMKpaAVxYMJATlIOAMngMmABy7gBGmMQSXKQADqgKhLYMzm4e3nEJSQIBQaEsEVFcMZaY1slCBEzEBKnunlw%2BpeUCldUEuSHhkdEWVTV16Y197Z35hdEAlBaorsTI7BwApABMAMyByG5YANRLa44KBPioAHQI%2B9hLGgCC1zcA9A87AJIMR4Y2TDZGO0w7SgIOwImBYsQMINO91WaywNCCO2CNwAstgdoECMZAdD1nDApgdgBpbAATWMABUSejBDiNgwtq5dvtHAgCARYgoQE9iEwAO6nYCEBCuMKuJTzWSMAinNAsB4AKSYyAA1goBDdaAYGA8AGqRD5hegPFhMQIPABu%2Bqqhsw50u0NuT1e7yqgjw30CwD%2BOxNsWBoPB31ttLxCKRqOpmIxxl9Icw8IJxLJlMjcYTOx1Nz8FKpGNpm22BOZrPZnO5fIFQpFYsiaEEUplqDlipVaoYGq1uqtTBtxtN2stxAN9Dtayut3uGJ9/YgO3NqDw6B2k2hAHYAEL3HY7J1CTDSh03bfRwE7WbELH7/ab27b81RhiEWerABs58vQJXaxvd1vO%2Bebzij8XrKpgACeChQn%2B/DELOU54HsawACI7Bo17oohjg7FwaHfnsKybgRCErn%2BSwblu26Rh%2BxiEMQ6IEHR%2BwofeNHvJEBDPisb5zB%2BpAYV%2BP6UeiVCzixeAKMYDhwQxy7LhRQmYKoT7YXJeFOgA8q4QKoFQPqgiQYFQUeeyrkhh7bk62A8okvygRBRnbjBcGCBhTGoehCHMthuHrq5BFuWscl/nemKREwSicdxF6AnxxHXuZ/47AASvuxB4Jg5qejsdmQRRTmRq5yHuXhnkHN56GrIR65xaR5HBVRgI0TJtGIcxmLAPukXvjF/HxfVeAiTsYBgGJElSfRdGTEFxlCbEaWCINqwrKsACsS5LbFDGnOg3xMAAtJcdmqYJJlmX%2BTrKPNILoCAKkrDskg7CtOyrjsAAcCVOi8II8jYAgOTsTnyQ1%2B5NXRLVuSxNBDhx%2BFRR%2Bx3A8No2SQw6DSZNfUzRNrVzpiQSqLDLUkcZJOzVdi0rMtKxrfhKybcQ227QdY5HQJFEXVdmA3Q9T07Pdb0qauCUsVsmCGK4sRdTxp7sxO53PMiTCxEZFHRtGvpnjxsbfhRYmPrDr7vprcu/sZX1sTUWU5X8aNzmIriYLl0EkM5QKlShPmFVhOEVf5RHTduZEncegisZivpgzjTHAyFrFAdLF6%2BrFsX4b5XCI/1g0o%2BNxOB0JOyKcpGcCYlmnabpbAsAZANkWdZsWc8Vnhdb4EKLbS7mg7TsA/l8G417pU%2B4PacBfncdhRFcPG8rqemxzzwpQx6WZbZbcd/bbg93lrsFR7xW%2BUP5V4ZVlU1cZwfA%2BrYeRy1ENFSxHWG1xM%2BxHPWNCQNs7I1GY1oxjskyYFzmhiESsdKJLVWjdKBdNSDgOPFtHaVQWbYDsnA%2Bqn9EHM0uF3Wg4DTZB1MgvHYl0MTc1ulwEA90VggECpIEAz0VogBfC9EAgs3ogC8J9ACP0PT/R3rBK%2BYcNbKyjvfNqxhoZHETjGZWmdsY/xon/dGOMCGUXEXjYwBMiYySAUA7cICFoQHAZAmm0CzGwPAbRJmyDDrgXQdjBBjMkH7RwWIYGajOZkJ5vQxhzD%2Ba0Pepw7CVDWEfXlsZUW9AJZS2ntrOR88iG3A4NMWgnAVq8E8BwLQpBUCcCwmqOYCx8JrB4KQAgmgUnTAQOLLAUQIDTGVAwrwpwXwrS4CtF8q4vCSEkDTDQb1Vz6E4JITJlTcmcF4JyDQ5TKnTDgLAJAikyhaRIOQSg1RgAKGUIYTAtAhAIFQLyLJZTZSxDoHwhgOygj7MOcc8ZZy6A9GQMALgVNSCPPoMQYIrBFi8E%2BZEcuByjlZJycs5ANxiBbMmb4VQZRKj4CybwfgggRBiHYFIGQghFAqHUNknQegtQmDMPoPAYROSQGmKgWIf13gwtQIONKWAKUNNIMQVwbo2DklQC4Fl0xCnzAxX0RF1y9nAvudwXgDFMCLDKbyHksROA8FSeksZ%2BKJkcGwHC5Aqy6KqDei%2BPaL5HrAGQMgbCKxTj3QgI4PiuBCAkBKVwSYUq5nVNqT0VlTTJAaFOGsSQb1JBrBWBoFaK1VySC8FwNYwyOCjNIKC3geSOBTJADMip%2BLJgqo4CsNVOTk2uszdMQciQ7CSCAA%3D%3D).
+Try it online [here](https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1AB9U8lJL6yAngGVG6AMKpaAVxYMQANlIOAMngMmABy7gBGmMTeAOykAA6oCoS2DM5uHt7xickCAUGhLBFRXrGWmNYpQgRMxARp7p4%2BZRUCVTUEeSHhkTEW1bX1GU39HYFdhT0lAJQWqK7EyOwcAKQATADMgchuWADUy%2BuOCgT4qAB0CAfYyxoAgje3APSPuwCSDMeGNkw2RrtMuyUBF2BEwLDiBlBZwea3WWBoQV2wVuAFlsLtAgRjECYRt4WNdgBpbAATWMABUSRjBLjNgxtq49gdHAgCAQ4goQM9iEwAO5nYCEBCuMKuJQLWSMAhnNAsR4AKSYyAA1goBLdaAYGI8AGqRT5heiPFhMQKPABu%2BuqhswFyuMLuzzeH2qgjwP0CwH%2BuxNcRBYIhP1ttPxiORaOpWMxxl9IcwCMwRNJFKpmLjCd2OtufhTkdpWx2ieZrPZnO5fIFQpFYsiaEEUplqDlipVaoYGq1uqtTBtxtN2stxAN9Dt62udwemJ9/Ygu3NqDw6F2Uxh0QAQg9drsnUJMNKHbct9Ggbs5sRsXuDhu7lvzVGGIRZ2svGeL8CV%2Btr/cb9uXu9xb8XrKpgACeCjQj%2B/DELOU54Ps6wACK7BoV4YvBji7FwKGfvsqwbnhcErj%2ByzrpuW6Rm%2BxiEMQGIEDRBxIXeVEfJEBBPqsL7zG%2BpBoR%2BX7kRiVCzkxeAKMYDgwXRy7LmRW4kfxAm/rsADyrjAqgVA%2BmCJAgTxar/GEJD7j%2BAlMdsmCGK4cTsZx54nnxsnkcQe7zAwmFXo5JEIWRXkHluTrYDySR/MBYEQYeuxQTBghoQxyGoXBzKYdha6xXhcXrDJJlzlikRMEoNmvkCPGER5E4/k6ABKe7EHgmDmp6uyheBZFRZGsWIfFOGJYcyWoWs%2BFrqVxGkdlx57lRUnUfBjFYsAe6FVxxW8WVEVHkJuxgGAIliRJtE0VMWVreRcS1YIG1rKsawAKxLpdJV0Wc6A/EwAC0VyhTJn4%2BdE3kVS8yhnaC6AgJhuyrLski7NduzRLsAAcflKa8oI8jYAjhVuUWOeNUZTVJcVMTQQ5sbhtlvl9ClbltO3iQw6CSQdq0CdNhNYkEqik9NRERTzAmnZiF2rFdqy3bhqwPcQT0ve9Y6fQ5/27IDmKYCD4OQ7DYMw4j5URWZ9CWdZZNFXulNI06KJMHE4VkdG0a%2BqeXGxt9P4iQ%2BpPPq%2BDsK9%2BEVOv%2BrGNc1/z03OYiuJgLWQSQ0XAj1SEpR1GFYf16UEUdcmjcdduCDGVuTTRrOdW7AGLeevolSVuGpVwZtjRttN7dzGfkfJjn%2BS8qnqZpbAsDpemoAZRmY4p%2BsWQwVll3nfo%2B4puzOQQrnuS7x2%2BSNf2%2Bx3uyBflQegQoIdLua4eRyPbWwTNXWpT1yeJ4l6WdZlfPkUxeUFcbTtW1XPtkVVNV1Q1EK%2B9D5hzcKfVqMd2rxyvknPqOEBoDWGhFNuY1c723ztNIus1jDzQ9hxL2X8VorxZhtGmUZdr00ZtJZ%2B/MgZCXbq3YWN0QbMPFqQBhR5HrPWqLLbAoV2HZRZlwmWVxj60AYbPfYv1f4AyBqrUGXAQAQ1WCATKkgQAw2ut4WGIB4YIxAAATnNn%2BVGHoMYQOgjjNBudfQF32pfImeASZT29szciZCqIUIZvYyRnD6LF3ZpgTmVDn40N2ALc6EAGGXWYSAVh90GHUWljwj6oEBHHT8ckt6oixCOUkU6ZW9Y1YqLURonRejFEQy0V4fRRjda3ixOZQ2LirZ13uNIu4HAZi0E4NdXgnhuC8FQJwDCap5iLFwusHgpACCaC6TMBAFksBRAgDMZUGiDFnC8NdLg10SgGMkJIUWGh4axB6RwSQ/S5mkGGRwXgnINAzLmTMOAsAkBBPKGpEg5BKA1GAAoZQhhMC0CEAgVAvIBnTNlHEOgZiGCAqCCCsFELrnQroD0ZAwAuDC1IGi%2BgxBgisCWLwPFkQu6gvBQMrQvhVDlFuMQf5nBeAfOQFUfAAzeD8EECIMQ7ApAyEEIoFQ6gODUt0FwfQhgTBmH0HgMInJIAzFQHEdGHwmU3MHLVLACrVmkGIK4N0bBySoBcDqmYYyFh8r6OyhFwKKUosGTM5ySxpm8h5HETgPBum9KuaKoZnBsC0uQF8miqh4ZeFel4KGwBkDIEwqsM4EMICOB4rgQgJBJlcCmLwWZfqpgLKWT0XV6zJAaDOOsSQ8NJDrFWBoa611oiSAMVwdY%2BhOCXNIFS/1dyLAgEebmrQ%2Ba20cFWL66ltyc3PJmIOJIdhJBAA%3D.
+
+A variation of Verstable is also available as part of the broader generic data-structure library [Convenient Containers](https://github.com/JacksonAllan/CC).
 
 ## Installation
 
@@ -71,7 +73,11 @@ int main( void )
   {
     int_set_itr itr = vt_insert( &our_set, i );
     if( vt_is_end( itr ) )
-      exit( 1 ); // Out of memory.
+    {
+      // Out of memory, so abort.
+      vt_cleanup( &our_set );
+      return 1;
+    }
   }
 
   // Erasing keys.
@@ -94,7 +100,7 @@ int main( void )
     itr = vt_next( itr )
   )
     printf( "%d ", itr.data->key );
-  // Printed: 4 5 2 8 1 7
+  // Printed: 2 4 7 1 5 8
 
   vt_cleanup( &our_set );
 
@@ -109,7 +115,11 @@ int main( void )
     int_int_map_itr itr =
       vt_insert( &our_map, i, i + 1 );
     if( vt_is_end( itr ) )
-      exit( 1 ); // Out of memory.
+    {
+      // Out of memory, so abort.
+      vt_cleanup( &our_map );
+      return 1;
+    }
   }
 
   // Erasing keys and values.
@@ -140,7 +150,7 @@ int main( void )
       itr.data->key,
       itr.data->val
     );
-  // Printed: 4:5 5:6 2:3 8:9 1:2 7:8
+  // Printed: 2:3 4:5 7:8 1:2 5:6 8:9
 
   vt_cleanup( &our_map );
 }
@@ -181,7 +191,11 @@ int main( void )
     int_set_itr itr =
       int_set_insert( &our_set, i );
     if( int_set_is_end( itr ) )
-      exit( 1 ); // Out of memory.
+    {
+      // Out of memory, so abort.
+      int_set_cleanup( &our_set );
+      return 1;
+    }
   }
 
   // Erasing keys.
@@ -205,7 +219,7 @@ int main( void )
     itr = int_set_next( itr )
   )
     printf( "%d ", itr.data->key );
-  // Printed: 4 5 2 8 1 7
+  // Printed: 2 4 7 1 5 8
 
   int_set_cleanup( &our_set );
 
@@ -220,7 +234,11 @@ int main( void )
     int_int_map_itr itr =
       int_int_map_insert( &our_map, i, i + 1 );
     if( int_int_map_is_end( itr ) )
-      exit( 1 ); // Out of memory.
+    {
+      // Out of memory, so abort.
+      int_int_map_cleanup( &our_map );
+      return 1;
+    }
   }
 
   // Erasing keys and values.
@@ -253,7 +271,7 @@ int main( void )
       itr.data->key,
       itr.data->val
     );
-  // Printed: 4:5 5:6 2:3 8:9 1:2 7:8
+  // Printed: 2:3 4:5 7:8 1:2 5:6 8:9
 
   int_int_map_cleanup( &our_map );
 }
