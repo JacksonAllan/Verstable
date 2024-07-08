@@ -485,7 +485,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   const uint16_t endian_checker = 0x0001;
   if( *(const char *)&endian_checker ) // Little-endian (the compiler will optimize away the check at -O1 and above).
     return __builtin_ctzll( val ) / 16;
-  
+
   return __builtin_clzll( val ) / 16;
 }
 
@@ -521,12 +521,12 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   memcpy( &half, &val, sizeof( uint32_t ) );
   if( !half )
     result += 2;
-  
+
   uint16_t quarter;
   memcpy( &quarter, (char *)&val + result * sizeof( uint16_t ), sizeof( uint16_t ) );
   if( !quarter )
     result += 1;
-  
+
   return result;
 }
 
@@ -550,7 +550,7 @@ static inline uint64_t vt_hash_integer( uint64_t key )
 }
 
 // FNV-1a.
-static inline uint64_t vt_hash_string( char *key )
+static inline uint64_t vt_hash_string( const char *key )
 {
   uint64_t hash = 0xcbf29ce484222325ull;
   while( *key )
@@ -564,7 +564,7 @@ static inline bool vt_cmpr_integer( uint64_t key_1, uint64_t key_2 )
   return key_1 == key_2;
 }
 
-static inline bool vt_cmpr_string( char *key_1, char *key_2 )
+static inline bool vt_cmpr_string( const char *key_1, const char *key_2 )
 {
   return strcmp( key_1, key_2 ) == 0;
 }
@@ -877,10 +877,10 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #define HASH_FN                                                               \
 _Pragma( "warning( push )" )                                                  \
 _Pragma( "warning( disable: 4189 )" )                                         \
-_Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer ) \
+_Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, const char*: vt_hash_string, default: vt_hash_integer ) \
 _Pragma( "warning( pop )" )
 #else
-#define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer )
+#define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, const char*: vt_hash_string, default: vt_hash_integer )
 #endif
 #else
 #error Hash function inference is only available in C11 and later. In C99, you need to define HASH_FN manually to \
@@ -894,10 +894,10 @@ vt_hash_integer, vt_hash_string, or your own custom function with the signature 
 #define CMPR_FN                                                               \
 _Pragma( "warning( push )" )                                                  \
 _Pragma( "warning( disable: 4189 )" )                                         \
-_Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer ) \
+_Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, const char*: vt_cmpr_string, default: vt_cmpr_integer ) \
 _Pragma( "warning( pop )" )
 #else
-#define CMPR_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer )
+#define CMPR_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, const char*: vt_cmpr_string, default: vt_cmpr_integer )
 #endif
 #else
 #error Comparison function inference is only available in C11 and later. In C99, you need to define CMPR_FN manually \
@@ -1218,7 +1218,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
   size_t empty;
   uint16_t displacement;
   if(
-    VT_UNLIKELY( 
+    VT_UNLIKELY(
       // Load-factor check.
       table->key_count + 1 > VT_CAT( NAME, _bucket_count )( table ) * MAX_LOAD ||
       // Find the earliest empty bucket, per quadratic probing.
