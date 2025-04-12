@@ -254,7 +254,7 @@ API:
         By default, all hash table functions are defined as static inline functions, the intent being that a given hash
         table template should be instantiated once per translation unit; for best performance, this is the recommended
         way to use the library.
-        However, it is also possible separate the struct definitions and function declarations from the function
+        However, it is also possible to separate the struct definitions and function declarations from the function
         definitions such that one implementation can be shared across all translation units (as in a traditional header
         and source file pair).
         In that case, instantiate a template wherever it is needed by defining HEADER_MODE, along with only NAME,
@@ -385,7 +385,7 @@ API:
       itr.data->val
 
     Functions that may insert new keys (NAME_insert and NAME_get_or_insert), erase keys (NAME_erase and NAME_erase_itr),
-    or reallocate the internal bucket array (NAME_reserve and NAME_shrink) invalidate all exiting iterators.
+    or reallocate the internal bucket array (NAME_reserve and NAME_shrink) invalidate all existing iterators.
     To delete keys during iteration and resume iterating, use the return value of NAME_erase_itr.
 
 Version history:
@@ -601,7 +601,7 @@ static inline void vt_free_with_ctx( void *ptr, size_t size, void *ctx )
 // In summary, instantiating a template also defines wrappers for the template's types and functions with names in the
 // pattern of vt_table_NNNN and vt_init_NNNN, where NNNN is an automatically generated integer unique to the template
 // instance in the current translation unit.
-// These wrappers plug in to _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
+// These wrappers plug into _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
 // slots for every existing template instance.
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
 
@@ -849,10 +849,6 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 
 #ifndef MAX_LOAD
 #define MAX_LOAD 0.9
-#endif
-
-#if !defined( MALLOC ) || !defined( FREE )
-#include <stdlib.h>
 #endif
 
 #ifndef MALLOC_FN
