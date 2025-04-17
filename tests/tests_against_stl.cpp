@@ -56,7 +56,7 @@ License (MIT):
 size_t simulated_alloc_failures;
 std::unordered_set<void *> oustanding_allocs;
 
-void *unreliable_tracking_malloc( size_t size )
+static void *unreliable_tracking_malloc( size_t size )
 {
 #ifdef SIMULATE_ALLOC_FAILURES
   if( rand() % 5 == 0 )
@@ -74,7 +74,7 @@ void *unreliable_tracking_malloc( size_t size )
   return ptr;
 }
 
-void tracking_free( void *ptr, size_t size )
+static void tracking_free( void *ptr, size_t size )
 {
   (void)size;
 
