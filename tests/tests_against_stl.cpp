@@ -1,6 +1,6 @@
 /*
 
-Verstable v2.1.1 - tests/tests_against_stl.cpp
+Verstable v2.2.0 - tests/tests_against_stl.cpp
 
 This file tests Verstable sets and maps against equivalent C++'s unordered_set and unordered_map.
 Primarily, it checks that a Verstable hash table and its equivalent STL container finish in the same state after a
@@ -9,7 +9,7 @@ It also checks that results of API calls that return iterators are as expected.
 
 License (MIT):
 
-  Copyright (c) 2023-2024 Jackson L. Allan
+  Copyright (c) 2023-2025 Jackson L. Allan
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the

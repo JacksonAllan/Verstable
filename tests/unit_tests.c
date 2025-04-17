@@ -1,13 +1,13 @@
 /*
 
-Verstable v2.1.1 - tests/unit_tests.c
+Verstable v2.2.0 - tests/unit_tests.c
 
 This file tests Verstable sets and maps.
 It aims to cover the full functionality, via the C11 generic API, and to check corner cases.
 
 License (MIT):
 
-  Copyright (c) 2023-2024 Jackson L. Allan
+  Copyright (c) 2023-2025 Jackson L. Allan
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the

@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v2.1.1 ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v2.2.0 ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -390,6 +390,10 @@ API:
 
 Version history:
 
+  --/--/2025 2.2.0: Added const qualifier to the table parameter of NAME_size, NAME_bucket_count, NAME_get, and
+                    NAME_first and to the source parameter of NAME_init_clone.
+                    Added default support for const char * strings.
+                    Replaced FNV-1a with Wyhash as the default string hash function.
   18/06/2024 2.1.1: Fixed a bug affecting iteration on big-endian platforms under MSVC.
   27/05/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
                     Fixed a bug that could theoretically cause a crash on rehash (triggerable in testing using
@@ -405,7 +409,7 @@ Version history:
 
 License (MIT):
 
-  Copyright (c) 2023-2024 Jackson L. Allan
+  Copyright (c) 2023-2025 Jackson L. Allan
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
