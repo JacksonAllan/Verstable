@@ -390,9 +390,10 @@ API:
 
 Version history:
 
-  --/--/2025 2.2.0: Added const qualifier to the table parameter of NAME_size, NAME_bucket_count, NAME_get, and
+  18/04/2025 2.2.0: Added const qualifier to the table parameter of NAME_size, NAME_bucket_count, NAME_get, and
                     NAME_first and to the source parameter of NAME_init_clone.
                     Added default support for const char * strings.
+                    Added support for -Wextra.
                     Replaced FNV-1a with Wyhash as the default string hash function.
   18/06/2024 2.1.1: Fixed a bug affecting iteration on big-endian platforms under MSVC.
   27/05/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
