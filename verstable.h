@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v2.1.1 ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v2.2.0 ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -41,7 +41,7 @@ Usage example:
 
   +---------------------------------------------------------+----------------------------------------------------------+
   | Using the generic macro API (C11 and later):            | Using the prefixed functions API (C99 and later):        |
-  |---------------------------------------------------------+----------------------------------------------------------+
+  +---------------------------------------------------------+----------------------------------------------------------+
   | #include <stdio.h>                                      | #include <stdio.h>                                       |
   |                                                         |                                                          |
   | // Instantiating a set template.                        | // Instantiating a set template.                         |
@@ -254,7 +254,7 @@ API:
         By default, all hash table functions are defined as static inline functions, the intent being that a given hash
         table template should be instantiated once per translation unit; for best performance, this is the recommended
         way to use the library.
-        However, it is also possible separate the struct definitions and function declarations from the function
+        However, it is also possible to separate the struct definitions and function declarations from the function
         definitions such that one implementation can be shared across all translation units (as in a traditional header
         and source file pair).
         In that case, instantiate a template wherever it is needed by defining HEADER_MODE, along with only NAME,
@@ -385,11 +385,16 @@ API:
       itr.data->val
 
     Functions that may insert new keys (NAME_insert and NAME_get_or_insert), erase keys (NAME_erase and NAME_erase_itr),
-    or reallocate the internal bucket array (NAME_reserve and NAME_shrink) invalidate all exiting iterators.
+    or reallocate the internal bucket array (NAME_reserve and NAME_shrink) invalidate all existing iterators.
     To delete keys during iteration and resume iterating, use the return value of NAME_erase_itr.
 
 Version history:
 
+  18/04/2025 2.2.0: Added const qualifier to the table parameter of NAME_size, NAME_bucket_count, NAME_get, and
+                    NAME_first and to the source parameter of NAME_init_clone.
+                    Added default support for const char * strings.
+                    Added support for -Wextra.
+                    Replaced FNV-1a with Wyhash as the default string hash function.
   18/06/2024 2.1.1: Fixed a bug affecting iteration on big-endian platforms under MSVC.
   27/05/2024 2.1.0: Replaced the Murmur3 mixer with the fast-hash mixer as the default integer hash function.
                     Fixed a bug that could theoretically cause a crash on rehash (triggerable in testing using
@@ -405,7 +410,7 @@ Version history:
 
 License (MIT):
 
-  Copyright (c) 2023-2024 Jackson L. Allan
+  Copyright (c) 2023-2025 Jackson L. Allan
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -485,7 +490,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   const uint16_t endian_checker = 0x0001;
   if( *(const char *)&endian_checker ) // Little-endian (the compiler will optimize away the check at -O1 and above).
     return __builtin_ctzll( val ) / 16;
-  
+
   return __builtin_clzll( val ) / 16;
 }
 
@@ -521,12 +526,12 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
   memcpy( &half, &val, sizeof( uint32_t ) );
   if( !half )
     result += 2;
-  
+
   uint16_t quarter;
   memcpy( &quarter, (char *)&val + result * sizeof( uint16_t ), sizeof( uint16_t ) );
   if( !quarter )
     result += 1;
-  
+
   return result;
 }
 
@@ -549,14 +554,127 @@ static inline uint64_t vt_hash_integer( uint64_t key )
   return key;
 }
 
-// FNV-1a.
-static inline uint64_t vt_hash_string( char *key )
-{
-  uint64_t hash = 0xcbf29ce484222325ull;
-  while( *key )
-    hash = ( (unsigned char)*key++ ^ hash ) * 0x100000001b3ull;
+// For hashing strings, we use the public-domain Wyhash
+// (https://github.com/wangyi-fudan/wyhash) with the following modifications:
+// * We use a fixed seed and secret (the defaults suggested in the Wyhash repository).
+// * We do not handle endianness, so the result will differ depending on the platform.
+// * We omit the code optimized for 32-bit platforms.
 
-  return hash;
+static inline void vt_wymum( uint64_t *a, uint64_t *b )
+{
+#if defined( __SIZEOF_INT128__ )
+  __uint128_t r = *a;
+  r *= *b; 
+  *a = (uint64_t)r;
+  *b = (uint64_t)( r >> 64 );
+#elif defined( _MSC_VER ) && defined( _M_X64 )
+  *a = _umul128( *a, *b, b );
+#else
+  uint64_t ha = *a >> 32;
+  uint64_t hb = *b >> 32;
+  uint64_t la = (uint32_t)*a;
+  uint64_t lb = (uint32_t)*b;
+  uint64_t rh = ha * hb;
+  uint64_t rm0 = ha * lb;
+  uint64_t rm1 = hb * la;
+  uint64_t rl = la * lb;
+  uint64_t t = rl + ( rm0 << 32 );
+  uint64_t c = t < rl;
+  uint64_t lo = t + ( rm1 << 32 );
+  c += lo < t;
+  uint64_t hi = rh + ( rm0 >> 32 ) + ( rm1 >> 32 ) + c;
+  *a = lo;
+  *b = hi;
+#endif
+}
+
+static inline uint64_t vt_wymix( uint64_t a, uint64_t b )
+{
+  vt_wymum( &a, &b );
+  return a ^ b;
+}
+
+static inline uint64_t vt_wyr8( const unsigned char *p )
+{
+  uint64_t v;
+  memcpy( &v, p, 8 );
+  return v;
+}
+
+static inline uint64_t vt_wyr4( const unsigned char *p )
+{
+  uint32_t v;
+  memcpy( &v, p, 4 );
+  return v;
+}
+
+static inline uint64_t vt_wyr3( const unsigned char *p, size_t k )
+{
+  return ( ( (uint64_t)p[ 0 ] ) << 16 ) | ( ( (uint64_t)p[ k >> 1 ] ) << 8 ) | p[ k - 1 ];
+}
+
+static inline size_t vt_wyhash( const void *key, size_t len )
+{
+  const unsigned char *p = (const unsigned char *)key;
+  uint64_t seed = 0xca813bf4c7abf0a9ull;
+  uint64_t a;
+  uint64_t b;
+  if( VT_LIKELY( len <= 16 ) )
+  {
+    if( VT_LIKELY( len >= 4 ) )
+    {
+      a = ( vt_wyr4( p ) << 32 ) | vt_wyr4( p + ( ( len >> 3 ) << 2 ) );
+      b = ( vt_wyr4( p + len - 4 ) << 32 ) | vt_wyr4( p + len - 4 - ( ( len >> 3 ) << 2 ) );
+    }
+    else if( VT_LIKELY( len > 0 ) )
+    {
+      a = vt_wyr3( p, len );
+      b = 0;
+    }
+    else
+    {
+      a = 0;
+      b = 0;
+    }
+  }
+  else
+  {
+    size_t i = len; 
+    if( VT_UNLIKELY( i >= 48 ) )
+    {
+      uint64_t see1 = seed;
+      uint64_t see2 = seed;
+      do{
+        seed = vt_wymix( vt_wyr8( p ) ^ 0x8bb84b93962eacc9ull, vt_wyr8( p + 8 ) ^ seed );
+        see1 = vt_wymix( vt_wyr8( p + 16 ) ^ 0x4b33a62ed433d4a3ull, vt_wyr8( p + 24 ) ^ see1 );
+        see2 = vt_wymix( vt_wyr8( p + 32 ) ^ 0x4d5a2da51de1aa47ull, vt_wyr8( p + 40 ) ^ see2 );
+        p += 48;
+        i -= 48;
+      }
+      while( VT_LIKELY( i >= 48 ) );
+      seed ^= see1 ^ see2;
+    }
+
+    while( VT_UNLIKELY( i > 16 ) )
+    {
+      seed = vt_wymix( vt_wyr8( p ) ^ 0x8bb84b93962eacc9ull, vt_wyr8( p + 8 ) ^ seed );
+      i -= 16;
+      p += 16;
+    }
+
+    a = vt_wyr8( p + i - 16 );
+    b = vt_wyr8( p + i - 8 );
+  }
+
+  a ^= 0x8bb84b93962eacc9ull;
+  b ^= seed;
+  vt_wymum( &a, &b );
+  return (size_t)vt_wymix( a ^ 0x2d358dccaa6c78a5ull ^ len, b ^ 0x8bb84b93962eacc9ull );
+}
+
+static inline uint64_t vt_hash_string( const char *key )
+{
+  return vt_wyhash( key, strlen( key ) );
 }
 
 static inline bool vt_cmpr_integer( uint64_t key_1, uint64_t key_2 )
@@ -564,7 +682,7 @@ static inline bool vt_cmpr_integer( uint64_t key_1, uint64_t key_2 )
   return key_1 == key_2;
 }
 
-static inline bool vt_cmpr_string( char *key_1, char *key_2 )
+static inline bool vt_cmpr_string( const char *key_1, const char *key_2 )
 {
   return strcmp( key_1, key_2 ) == 0;
 }
@@ -601,7 +719,7 @@ static inline void vt_free_with_ctx( void *ptr, size_t size, void *ctx )
 // In summary, instantiating a template also defines wrappers for the template's types and functions with names in the
 // pattern of vt_table_NNNN and vt_init_NNNN, where NNNN is an automatically generated integer unique to the template
 // instance in the current translation unit.
-// These wrappers plug in to _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
+// These wrappers plug into _Generic-based API macros, which use preprocessor magic to automatically generate _Generic
 // slots for every existing template instance.
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined( VT_NO_C11_GENERIC_API )
 
@@ -769,15 +887,15 @@ VT_API_FN_QUALIFIERS void VT_CAT( NAME, _init )(
 
 VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
   NAME *,
-  NAME *
+  const NAME *
   #ifdef CTX_TY
   , CTX_TY
   #endif
 );
 
-VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _size )( NAME * );
+VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _size )( const NAME * );
 
-VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _bucket_count )( NAME * );
+VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _bucket_count )( const NAME * );
 
 VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _is_end )( VT_CAT( NAME, _itr ) );
 
@@ -798,7 +916,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get_or_insert )(
 );
 
 VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )(
-  NAME *table,
+  const NAME *table,
   KEY_TY key
 );
 
@@ -810,7 +928,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _reserve )( NAME *, size_t );
 
 VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _shrink )( NAME * );
 
-VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _first )( NAME * );
+VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _first )( const NAME * );
 
 VT_API_FN_QUALIFIERS void VT_CAT( NAME, _clear )( NAME * );
 
@@ -851,10 +969,6 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #define MAX_LOAD 0.9
 #endif
 
-#if !defined( MALLOC ) || !defined( FREE )
-#include <stdlib.h>
-#endif
-
 #ifndef MALLOC_FN
 #ifdef CTX_TY
 #define MALLOC_FN vt_malloc_with_ctx
@@ -874,13 +988,17 @@ VT_CAT( NAME, _itr ) VT_CAT( NAME, _erase_itr )( NAME *table, VT_CAT( NAME, _itr
 #ifndef HASH_FN
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #ifdef _MSC_VER // In MSVC, the compound literal in the _Generic triggers a warning about unused local variables at /W4.
-#define HASH_FN                                                               \
-_Pragma( "warning( push )" )                                                  \
-_Pragma( "warning( disable: 4189 )" )                                         \
-_Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer ) \
+#define HASH_FN                                                                                            \
+_Pragma( "warning( push )" )                                                                               \
+_Pragma( "warning( disable: 4189 )" )                                                                      \
+_Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, const char*: vt_hash_string, default: vt_hash_integer ) \
 _Pragma( "warning( pop )" )
 #else
-#define HASH_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_hash_string, default: vt_hash_integer )
+#define HASH_FN _Generic( ( KEY_TY ){ 0 }, \
+  char *: vt_hash_string,                  \
+  const char*: vt_hash_string,             \
+  default: vt_hash_integer                 \
+)
 #endif
 #else
 #error Hash function inference is only available in C11 and later. In C99, you need to define HASH_FN manually to \
@@ -891,13 +1009,17 @@ vt_hash_integer, vt_hash_string, or your own custom function with the signature 
 #ifndef CMPR_FN
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 #ifdef _MSC_VER
-#define CMPR_FN                                                               \
-_Pragma( "warning( push )" )                                                  \
-_Pragma( "warning( disable: 4189 )" )                                         \
-_Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer ) \
+#define CMPR_FN                                                                                            \
+_Pragma( "warning( push )" )                                                                               \
+_Pragma( "warning( disable: 4189 )" )                                                                      \
+_Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, const char*: vt_cmpr_string, default: vt_cmpr_integer ) \
 _Pragma( "warning( pop )" )
 #else
-#define CMPR_FN _Generic( ( KEY_TY ){ 0 }, char *: vt_cmpr_string, default: vt_cmpr_integer )
+#define CMPR_FN _Generic( ( KEY_TY ){ 0 }, \
+  char *: vt_cmpr_string,                  \
+  const char*: vt_cmpr_string,             \
+  default: vt_cmpr_integer                 \
+)
 #endif
 #else
 #error Comparison function inference is only available in C11 and later. In C99, you need to define CMPR_FN manually \
@@ -947,7 +1069,7 @@ static inline size_t VT_CAT( NAME, _total_alloc_size )( NAME *table )
 
 VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
   NAME *table,
-  NAME *source
+  const NAME *source
   #ifdef CTX_TY
   , CTX_TY ctx
   #endif
@@ -983,12 +1105,12 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
   return true;
 }
 
-VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _size )( NAME *table )
+VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _size )( const NAME *table )
 {
   return table->key_count;
 }
 
-VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _bucket_count )( NAME *table )
+VT_API_FN_QUALIFIERS size_t VT_CAT( NAME, _bucket_count )( const NAME *table )
 {
   // If the bucket count is zero, buckets_mask will be zero, not the bucket count minus one.
   // We account for this special case by adding (bool)buckets_mask rather than one.
@@ -1218,7 +1340,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( NAME, _insert_raw )(
   size_t empty;
   uint16_t displacement;
   if(
-    VT_UNLIKELY( 
+    VT_UNLIKELY(
       // Load-factor check.
       table->key_count + 1 > VT_CAT( NAME, _bucket_count )( table ) * MAX_LOAD ||
       // Find the earliest empty bucket, per quadratic probing.
@@ -1423,7 +1545,7 @@ VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get_or_insert )(
 }
 
 // Returns an iterator pointing to the specified key, or an end iterator if the key does not exist.
-VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( NAME *table, KEY_TY key )
+VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _get )( const NAME *table, KEY_TY key )
 {
   uint64_t hash = HASH_FN( key );
   size_t home_bucket = hash & table->buckets_mask;
@@ -1653,7 +1775,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _shrink )( NAME *table )
   return VT_CAT( NAME, _rehash )( table, bucket_count );
 }
 
-VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _first )( NAME *table )
+VT_API_FN_QUALIFIERS VT_CAT( NAME, _itr ) VT_CAT( NAME, _first )( const NAME *table )
 {
   if( !table->key_count )
     return VT_CAT( NAME, _end_itr )();
@@ -1742,7 +1864,7 @@ static inline void VT_CAT( vt_init_, VT_TEMPLATE_COUNT )(
 
 static inline bool VT_CAT( vt_init_clone_, VT_TEMPLATE_COUNT )(
   NAME *table,
-  NAME* source
+  const NAME* source
   #ifdef CTX_TY
   , CTX_TY ctx
   #endif
@@ -1757,12 +1879,12 @@ static inline bool VT_CAT( vt_init_clone_, VT_TEMPLATE_COUNT )(
   );
 }
 
-static inline size_t VT_CAT( vt_size_, VT_TEMPLATE_COUNT )( NAME *table )
+static inline size_t VT_CAT( vt_size_, VT_TEMPLATE_COUNT )( const NAME *table )
 {
   return VT_CAT( NAME, _size )( table );
 }
 
-static inline size_t VT_CAT( vt_bucket_count_, VT_TEMPLATE_COUNT )( NAME *table )
+static inline size_t VT_CAT( vt_bucket_count_, VT_TEMPLATE_COUNT )( const NAME *table )
 {
   return VT_CAT( NAME, _bucket_count )( table );
 }
@@ -1806,7 +1928,7 @@ static inline VT_CAT( NAME, _itr ) VT_CAT( vt_get_or_insert_, VT_TEMPLATE_COUNT 
   );
 }
 
-static inline VT_CAT( NAME, _itr ) VT_CAT( vt_get_, VT_TEMPLATE_COUNT )( NAME *table, KEY_TY key )
+static inline VT_CAT( NAME, _itr ) VT_CAT( vt_get_, VT_TEMPLATE_COUNT )( const NAME *table, KEY_TY key )
 {
   return VT_CAT( NAME, _get )( table, key );
 }
@@ -1836,7 +1958,7 @@ static inline bool VT_CAT( vt_shrink_, VT_TEMPLATE_COUNT )( NAME *table )
   return VT_CAT( NAME, _shrink )( table );
 }
 
-static inline VT_CAT( NAME, _itr ) VT_CAT( vt_first_, VT_TEMPLATE_COUNT )( NAME *table )
+static inline VT_CAT( NAME, _itr ) VT_CAT( vt_first_, VT_TEMPLATE_COUNT )( const NAME *table )
 {
   return VT_CAT( NAME, _first )( table );
 }

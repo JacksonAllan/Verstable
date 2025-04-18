@@ -1,13 +1,13 @@
 /*
 
-Verstable v2.1.1 - tests/unit_tests.c
+Verstable v2.2.0 - tests/unit_tests.c
 
 This file tests Verstable sets and maps.
 It aims to cover the full functionality, via the C11 generic API, and to check corner cases.
 
 License (MIT):
 
-  Copyright (c) 2023-2024 Jackson L. Allan
+  Copyright (c) 2023-2025 Jackson L. Allan
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -50,7 +50,7 @@ License (MIT):
 size_t simulated_alloc_failures = 0;
 size_t oustanding_allocs = 0;
 
-void *unreliable_tracking_malloc( size_t size )
+static void *unreliable_tracking_malloc( size_t size )
 {
 #ifdef SIMULATE_ALLOC_FAILURES
   if( rand() % 5 == 0 )
@@ -68,7 +68,7 @@ void *unreliable_tracking_malloc( size_t size )
   return ptr;
 }
 
-void tracking_free( void *ptr, size_t size )
+static void tracking_free( void *ptr, size_t size )
 {
   (void)size;
 
@@ -87,7 +87,7 @@ typedef struct
                      // that was used for allocation.
 } context;
 
-void *unreliable_tracking_malloc_with_ctx( size_t size, context *ctx )
+static void *unreliable_tracking_malloc_with_ctx( size_t size, context *ctx )
 {
   void *ptr = unreliable_tracking_malloc( size );
   if( !ptr )
@@ -98,7 +98,7 @@ void *unreliable_tracking_malloc_with_ctx( size_t size, context *ctx )
   return ptr;
 }
 
-void tracking_free_with_ctx( void *ptr, size_t size, context *ctx )
+static void tracking_free_with_ctx( void *ptr, size_t size, context *ctx )
 {
   ALWAYS_ASSERT( ctx->alloc_size == size );
   tracking_free( ptr, size );
@@ -108,12 +108,12 @@ void tracking_free_with_ctx( void *ptr, size_t size, context *ctx )
 
 bool dtor_called[ 100 ];
 
-void dtor( uint64_t key_or_val )
+static void dtor( uint64_t key_or_val )
 {
   dtor_called[ key_or_val ] = true;
 }
 
-void check_dtors_arr( void )
+static void check_dtors_arr( void )
 {
   for( size_t i = 0; i < 100; ++i )
   {
@@ -154,6 +154,23 @@ void check_dtors_arr( void )
 #define FREE_FN   tracking_free
 #include "../verstable.h"
 
+#define NAME      const_string_map
+#define KEY_TY    const char *
+#define VAL_TY    const char *
+#define MAX_LOAD  GLOBAL_MAX_LOAD
+#define MALLOC_FN unreliable_tracking_malloc
+#define FREE_FN   tracking_free
+#include "../verstable.h"
+
+#define NAME      integer_map_with_ctx
+#define KEY_TY    uint64_t
+#define VAL_TY    uint64_t
+#define CTX_TY    context
+#define MAX_LOAD  GLOBAL_MAX_LOAD
+#define MALLOC_FN unreliable_tracking_malloc_with_ctx
+#define FREE_FN   tracking_free_with_ctx
+#include "../verstable.h"
+
 #define NAME      integer_set
 #define KEY_TY    uint64_t
 #define MAX_LOAD  GLOBAL_MAX_LOAD
@@ -176,13 +193,11 @@ void check_dtors_arr( void )
 #define FREE_FN   tracking_free
 #include "../verstable.h"
 
-#define NAME      integer_map_with_ctx
-#define KEY_TY    uint64_t
-#define VAL_TY    uint64_t
-#define CTX_TY    context
+#define NAME      const_string_set
+#define KEY_TY    const char *
 #define MAX_LOAD  GLOBAL_MAX_LOAD
-#define MALLOC_FN unreliable_tracking_malloc_with_ctx
-#define FREE_FN   tracking_free_with_ctx
+#define MALLOC_FN unreliable_tracking_malloc
+#define FREE_FN   tracking_free
 #include "../verstable.h"
 
 #define NAME      integer_set_with_ctx
@@ -195,7 +210,7 @@ void check_dtors_arr( void )
 
 // Unit tests.
 
-void test_map_reserve( void )
+static void test_map_reserve( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -237,7 +252,7 @@ void test_map_reserve( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_shrink( void )
+static void test_map_shrink( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -284,7 +299,7 @@ void test_map_shrink( void )
   vt_cleanup( &our_map ); 
 }
 
-void test_map_insert( void )
+static void test_map_insert( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -316,7 +331,7 @@ void test_map_insert( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_get_or_insert( void )
+static void test_map_get_or_insert( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -351,7 +366,7 @@ void test_map_get_or_insert( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_get( void )
+static void test_map_get( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -377,7 +392,7 @@ void test_map_get( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_erase( void )
+static void test_map_erase( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -411,7 +426,7 @@ void test_map_erase( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_erase_itr( void )
+static void test_map_erase_itr( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -470,7 +485,7 @@ void test_map_erase_itr( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_clear( void )
+static void test_map_clear( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -501,7 +516,7 @@ void test_map_clear( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_cleanup( void )
+static void test_map_cleanup( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -531,7 +546,7 @@ void test_map_cleanup( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_init_clone( void )
+static void test_map_init_clone( void )
 {
   integer_map src_map;
   vt_init( &src_map );
@@ -560,7 +575,7 @@ void test_map_init_clone( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_iteration( void )
+static void test_map_iteration( void )
 {
   integer_map our_map;
   vt_init( &our_map );
@@ -597,7 +612,7 @@ void test_map_iteration( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_dtors( void )
+static void test_map_dtors( void )
 {
   integer_dtors_map our_map;
   integer_dtors_map_init( &our_map );
@@ -635,7 +650,8 @@ void test_map_dtors( void )
 }
 
 // Strings are a special case that warrant seperate testing.
-void test_map_strings( void )
+
+static void test_map_strings( void )
 {
   string_map our_map;
   vt_init( &our_map );
@@ -685,7 +701,57 @@ void test_map_strings( void )
   vt_cleanup( &our_map );
 }
 
-void test_map_with_ctx( void )
+static void test_map_const_strings( void )
+{
+  const_string_map our_map;
+  vt_init( &our_map );
+
+  const_string_map_itr itr;
+
+  // String literals.
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_map, "This", "is" ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->val, "is" ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_get_or_insert( &our_map, "a", "test" ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->val, "test" ) == 0 );
+
+  // Other strings.
+  const char str_1[] = "of";
+  const char str_2[] = "maps";
+  const char str_3[] = "with";
+  const char str_4[] = "strings.";
+
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_map, str_1, str_2 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->val, str_2 ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_get_or_insert( &our_map, str_3, str_4 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->val, str_4 ) == 0 );
+
+  // Check.
+  ALWAYS_ASSERT( vt_size( &our_map ) == 4 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_map, (const char *)"This" ).data->val, "is" ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_map, "a" ).data->val, "test" ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_map, str_1, str_2 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->val, str_2 ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_map, str_3, str_4 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->val, str_4 ) == 0 );
+  ALWAYS_ASSERT( vt_size( &our_map ) == 4 );
+
+  // Erase.
+  vt_erase( &our_map, "This" );
+  vt_erase( &our_map, str_1 );
+  ALWAYS_ASSERT( vt_size( &our_map ) == 2 );
+
+  // Iteration.
+  for(
+    itr = vt_first( &our_map );
+    !vt_is_end( itr );
+    itr = vt_next( itr )
+  )
+    ALWAYS_ASSERT( strcmp( itr.data->val, "test" ) == 0 || strcmp( itr.data->val, str_4 ) == 0 );
+
+  vt_cleanup( &our_map );
+}
+
+static void test_map_with_ctx( void )
 {
   integer_map_with_ctx our_maps[ 10 ];
   integer_map_with_ctx our_map_clones[ 10 ];
@@ -724,7 +790,7 @@ void test_map_with_ctx( void )
 
 // Set tests.
 
-void test_set_reserve( void )
+static void test_set_reserve( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -766,7 +832,7 @@ void test_set_reserve( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_shrink( void )
+static void test_set_shrink( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -813,7 +879,7 @@ void test_set_shrink( void )
   vt_cleanup( &our_set ); 
 }
 
-void test_set_insert( void )
+static void test_set_insert( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -845,7 +911,7 @@ void test_set_insert( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_get_or_insert( void )
+static void test_set_get_or_insert( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -880,7 +946,7 @@ void test_set_get_or_insert( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_get( void )
+static void test_set_get( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -906,7 +972,7 @@ void test_set_get( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_erase( void )
+static void test_set_erase( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -940,7 +1006,7 @@ void test_set_erase( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_erase_itr( void )
+static void test_set_erase_itr( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -999,7 +1065,7 @@ void test_set_erase_itr( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_clear( void )
+static void test_set_clear( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -1030,7 +1096,7 @@ void test_set_clear( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_cleanup( void )
+static void test_set_cleanup( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -1060,7 +1126,7 @@ void test_set_cleanup( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_init_clone( void )
+static void test_set_init_clone( void )
 {
   integer_set src_set;
   vt_init( &src_set );
@@ -1089,7 +1155,7 @@ void test_set_init_clone( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_iteration( void )
+static void test_set_iteration( void )
 {
   integer_set our_set;
   vt_init( &our_set );
@@ -1126,7 +1192,7 @@ void test_set_iteration( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_dtors( void )
+static void test_set_dtors( void )
 {
   integer_dtors_set our_set;
   integer_dtors_set_init( &our_set );
@@ -1163,7 +1229,7 @@ void test_set_dtors( void )
   check_dtors_arr();
 }
 
-void test_set_strings( void )
+static void test_set_strings( void )
 {
   string_set our_set;
   vt_init( &our_set );
@@ -1209,7 +1275,53 @@ void test_set_strings( void )
   vt_cleanup( &our_set );
 }
 
-void test_set_with_ctx( void )
+static void test_set_const_strings( void )
+{
+  const_string_set our_set;
+  vt_init( &our_set );
+
+  const_string_set_itr itr;
+
+  // String literals.
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, "This" ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, "This" ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, "is" ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, "is" ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, "a" ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, "a" ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, "test" ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, "test" ) == 0 );
+
+  // Other strings.
+  const char str_1[] = "of";
+  const char str_2[] = "sets";
+  const char str_3[] = "with";
+  const char str_4[] = "strings";
+
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, str_1 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, str_1 ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, str_2 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, str_2 ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, str_3 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, str_3 ) == 0 );
+  UNTIL_SUCCESS( !vt_is_end( itr = vt_insert( &our_set, str_4 ) ) );
+  ALWAYS_ASSERT( strcmp( itr.data->key, str_4 ) == 0 );
+
+  // Check.
+  ALWAYS_ASSERT( vt_size( &our_set ) == 8 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, (const char *)"This" ).data->key, "This" ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "is" ).data->key, "is" ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "a" ).data->key, "a" ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "test" ).data->key, "test" ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "of" ).data->key, str_1 ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "sets" ).data->key, str_2 ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "with" ).data->key, str_3 ) == 0 );
+  ALWAYS_ASSERT( strcmp( vt_get( &our_set, "strings" ).data->key, str_4 ) == 0 );
+
+  vt_cleanup( &our_set );
+}
+
+static void test_set_with_ctx( void )
 {
   integer_set_with_ctx our_sets[ 10 ];
   integer_set_with_ctx our_set_clones[ 10 ];
@@ -1269,6 +1381,7 @@ int main( void )
     test_map_iteration();
     test_map_dtors();
     test_map_strings();
+    test_map_const_strings();
     test_map_with_ctx();
 
     // Set.
@@ -1285,6 +1398,7 @@ int main( void )
     test_set_iteration();
     test_set_dtors();
     test_set_strings();
+    test_set_const_strings();
     test_set_with_ctx();
   }
 
