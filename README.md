@@ -324,6 +324,44 @@ The generic macro API available in C11 is based on the extendible-`_Generic` mec
 
 Verstable has been tested under GCC, Clang, MinGW, and MSVC. `tests/unit_tests.c` includes unit tests for sets and maps, with an emphasis on corner cases. `tests/tests_against_stl.cpp` includes randomized tests that perform the same operations on Verstable sets and maps, on one hand, and C++'s `std::unordered_set` and `std::unordered_map`, on the other, and then check that they remain in sync. Both test suites use a tracking and randomly failing memory allocator in order to detect memory leaks and test out-of-memory conditions.
 
+### What compiler warning options does it support?
+
+When used correctly, Verstable should not generate any compiler warnings under the following settings:
+
+<table>
+<tr>
+<th>Compiler</th>
+<th>Warning options</th>
+</tr>
+<tr>
+<td>
+GCC
+</td>
+<td>
+
+`-Wall` `-Wpedantic` `-Wextra`
+</td>
+</tr>
+<tr>
+<td>
+Clang
+</td>
+<td>
+
+`-Wall` `-Wpedantic` `-Wextra`
+</td>
+</tr>
+<tr>
+<td>
+MSVC
+</td>
+<td>
+
+`/W3`
+</td>
+</tr>
+</table>
+
 ### Why the name?
 
 The name is a contraction of "versatile table". Verstable handles various conditions that strain other hash table schemes—such as large keys or values that are expensive to move, high load factors, expensive hash or comparison functions, and frequent deletions, iteration, and unsuccessful lookups—without significant performance loss. In other words, it is designed to be a good default choice of hash table for most use cases.
