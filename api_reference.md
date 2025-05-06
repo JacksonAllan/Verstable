@@ -230,7 +230,7 @@ NAME_itr NAME_first( NAME *table ) // C11 generic macro: vt_first.
 Returns an iterator to the first key in the table, or an end iterator if the table is empty.
 
 ```c
-bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: vt_is_end.
+bool NAME_is_end( NAME_itr itr ) // C11 generic macro: vt_is_end.
 ```
 
 Returns `true` if the iterator is an end iterator.
