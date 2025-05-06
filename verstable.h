@@ -1,4 +1,4 @@
-/*------------------------------------------------- VERSTABLE v2.2.0 ---------------------------------------------------
+/*------------------------------------------------- VERSTABLE v2.2.1 ---------------------------------------------------
 
 Verstable is a C99-compatible, open-addressing hash table using quadratic probing and the following additions:
 
@@ -358,7 +358,7 @@ API:
 
       Returns an iterator to the first key in the table, or an end iterator if the table is empty.
 
-    bool NAME_is_end( NAME *table, NAME_itr itr ) // C11 generic macro: vt_is_end.
+    bool NAME_is_end( NAME_itr itr ) // C11 generic macro: vt_is_end.
 
       Returns true if the iterator is an end iterator.
 
@@ -390,6 +390,7 @@ API:
 
 Version history:
 
+  06/05/2025 2.2.1: Fixed incorrect signature of NAME_is_end in documentation.
   18/04/2025 2.2.0: Added const qualifier to the table parameter of NAME_size, NAME_bucket_count, NAME_get, and
                     NAME_first and to the source parameter of NAME_init_clone.
                     Added default support for const char * strings.
