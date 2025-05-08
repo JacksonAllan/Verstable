@@ -540,7 +540,7 @@ static inline int vt_first_nonzero_uint16( uint64_t val )
 
 // When the bucket count is zero, setting the metadata pointer to point to a VT_EMPTY placeholder, rather than NULL,
 // allows us to avoid checking for a zero bucket count during insertion and lookup.
-static const uint16_t vt_empty_placeholder_metadatum = VT_EMPTY;
+static uint16_t vt_empty_placeholder_metadatum = VT_EMPTY;
 
 // Default hash and comparison functions.
 
@@ -1100,7 +1100,7 @@ VT_API_FN_QUALIFIERS bool VT_CAT( NAME, _init_clone )(
     return false;
 
   table->buckets = (VT_CAT( NAME, _bucket ) *)allocation;
-  table->metadata = (uint16_t *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( table ) );
+  table->metadata = (void *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( table ) );
   memcpy( allocation, source->buckets, VT_CAT( NAME, _total_alloc_size )( table ) );
 
   return true;
@@ -1415,7 +1415,7 @@ bool VT_CAT( NAME, _rehash )( NAME *table, size_t bucket_count )
       return false;
 
     new_table.buckets = (VT_CAT( NAME, _bucket ) *)allocation;
-    new_table.metadata = (uint16_t *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( &new_table ) );
+    new_table.metadata = (void *)( (unsigned char *)allocation + VT_CAT( NAME, _metadata_offset )( &new_table ) );
 
     memset( new_table.metadata, 0x00, ( bucket_count + 4 ) * sizeof( uint16_t ) );
 
